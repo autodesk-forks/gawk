@@ -3094,6 +3094,9 @@ check_bad_char(int c)
 
 /* nextc --- get the next input character */
 
+// For namespaces, -e chunks must be syntactic units.
+#define NO_CONTINUE_SOURCE_STRINGS	1
+
 static int
 nextc(bool check_for_bad)
 {
@@ -3181,6 +3184,7 @@ again:
 		return END_SRC;
 	}
 }
+#undef NO_CONTINUE_SOURCE_STRINGS
 
 /* pushback --- push a character back on the input */
 

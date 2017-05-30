@@ -1,3 +1,7 @@
+2017-05-30         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* sourceplit.ok: Revise to match changed code.
+
 2017-05-24         Andrew J. Schorr     <aschorr@telemetry-investments.com>
 
 	* fwtest8.ok: Fix field number in error message, thanks to a bug

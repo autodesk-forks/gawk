@@ -454,6 +454,7 @@ particular records in a file and perform operations upon them.
 * Library Functions::              A Library of @command{awk} Functions.
 * Sample Programs::                Many @command{awk} programs with complete
                                    explanations.
+* Namespaces::                     How namespaces work in @command{gawk}.
 * Advanced Features::              Stuff for advanced users, specific to
                                    @command{gawk}.
 * Internationalization::           Getting @command{gawk} to speak your
@@ -851,6 +852,12 @@ particular records in a file and perform operations upon them.
                                         time on their hands.
 * Programs Summary::                    Summary of programs.
 * Programs Exercises::                  Exercises.
+* Global Namespace::                    The global namespace in standard @command{awk}.
+* Qualified Names::                     How to qualify names with a namespace.
+* Default Namespace::                   The default namespace.
+* Changing The Namespace::              How to change the namespace.
+* Namespace Example::                   An example of code using a namespace.
+* Namespace Misc::                      Namespace notes for developers.
 * Nondecimal Data::                     Allowing nondecimal input data.
 * Array Sorting::                       Facilities for controlling array
                                         traversal and sorting arrays.
@@ -3973,8 +3980,9 @@ a newline character (even if it doesn't). This makes building
 the total program easier.
 
 @quotation CAUTION
-At the moment, there is no requirement that each @var{program-text}
-be a full syntactic unit. I.e., the following currently works:
+Prior to @value{PVERSION} @strong{FIXME} 5.0, there was
+no requirement that each @var{program-text}
+be a full syntactic unit. I.e., the following worked:
 
 @example
 $ @kbd{gawk -e 'BEGIN @{ a = 5 ;' -e 'print a @}'}
@@ -3982,8 +3990,8 @@ $ @kbd{gawk -e 'BEGIN @{ a = 5 ;' -e 'print a @}'}
 @end example
 
 @noindent
-However, this could change in the future, so it's not a
-good idea to rely upon this feature.
+However, this is no longer true. If you have any scripts that
+rely upon this feature, you should revise them.
 @end quotation
 
 @item @option{-E} @var{file}
@@ -27605,6 +27613,12 @@ It contains the following chapters:
 This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 
 @menu
+* Global Namespace::            The global namespace in standard @command{awk}.
+* Qualified Names::             How to qualify names with a namespace.
+* Default Namespace::           The default namespace.
+* Changing The Namespace::      How to change the namespace.
+* Namespace Example::           An example of code using a namespace.
+* Namespace Misc::              Namespace notes for developers.
 @end menu
 
 @node Global Namespace
@@ -27629,7 +27643,7 @@ still a single namespace for the namespaces, but the hope is that there
 are much fewer namespaces in use by any given program, and thus much
 less chance for collisions.)
 
-Starting with version @strong{FIXME} 5.0, @command{gawk} provides a
+Starting with @value{PVERSION} @strong{FIXME} 5.0, @command{gawk} provides a
 mechanism to put functions and global variables into different
 namespaces.
 
@@ -27661,6 +27675,8 @@ forces unqualified identifiers whose names are all uppercase letters
 to be in the @samp{awk} namespace.  This makes it possible for you to easily
 reference @command{gawk}'s global variables from different namespaces.
 
+It is a syntactic error to use qualified names for function parameter names.
+
 @node Changing The Namespace
 @section Changing The Namespace
 
@@ -27670,7 +27686,7 @@ at the top level of your program:
 @example
 @@namespace "passwd"
 
-BEGIN @{ @dot{} @}
+BEGIN @{ @dots{} @}
 @dots{}
 @end example
 
@@ -27689,14 +27705,13 @@ the distinction.
 @end quotation
 
 Each source file for @option{-i} and @option{-f} starts out with an implicit
-@samp{@namespace "awk"}.
+@samp{@@namespace "awk"}.
 
 Similarly, each chunk of command-line code with @option{-e} has such an implicit
 statement.
 
-FIXME: The semantics of @option{-e} change to require it to be syntactic unit.
-
-FIXME: Update doc earlier in this book and change the corresponding code.
+The use of @samp{@@namespace} has no influence upon the order of execution
+of @code{BEGIN}, @code{BEGINFILE}, @code{END}, and @code{ENDFILE} rules.
 
 @node Namespace Example
 @section Namespace Example
@@ -27734,11 +27749,11 @@ function Init(    oldfs, oldrs, olddol0, pwcat, using_fw, using_fpat)
     RS = "\n"
 
     pwcat = _pw_awklib "pwcat"
-    while ((pwcat | getline) > 0) {
+    while ((pwcat | getline) > 0) @{
         Byname[$1] = $0
         Byuid[$3] = $0
         Bycount[++_pw_total] = $0
-    }
+    @}
     close(pwcat)
     Count = 0
     Inited = 1
@@ -27806,7 +27821,10 @@ function endpwent()
 
 Other notes for reviewers:
 
-@table
+@table @asis
+@item @code{SYMTAB}, @code{FUNCTAB} and @code{PROCINFO["identifiers"]}
+The subscripts are all fully qualified names.
+
 @item Profiler:
 When profiling, we can add an @code{Op_Namespace} to the start of
 each rule.  If it has changed since the previous one, output an
@@ -27816,10 +27834,44 @@ For all @samp{awk.XXX} if @samp{XXX} is all uppercase, strip
 off the @samp{awk} part.
 
 @item Debugger:
-Simply prints fully qualified names all the time. Maybe allow a
+Simply print fully qualified names all the time. Maybe allow a
 @samp{namespace @var{xxx}} command in the debugger to set the
 namespace and it will use that to create fully qualified names?
 Have to be careful about all uppercase names though.
+
+@item How does this affect indirect calls?
+The current namespace is a parse time thing, not a dynamic
+thing, so for indirect calls to work, use something like:
+
+@example
+@@namespace "foo"
+
+function bar() @{ @dots{}  @}
+
+@{
+    @dots{}
+    x = "foo.bar"
+    @dots{}
+    @@x()
+@}
+@end example
+
+@noindent
+This is particularly true if @code{x} is passed as a ``function pointer''
+to another function in another namespace for that function to call
+through it.
+
+@item How does this affect @code{@@include}?
+Basically @code{@@include} should push and pop the namespace. Each @code{@@include}
+saves the current namespace and starts over with namespace @samp{awk} until
+an @code{@@namespace} is seen.
+
+@item Extension functions
+Revise the current macros to pass @code{"awk"} as the namespace
+argument and add new macros with @samp{_ns} or some such in the name that
+pass the namespace of the extension.  This preserves backwards
+compatibility at the source level while providing access to namespaces
+as needed.
 @end table
 
 @node Advanced Features
