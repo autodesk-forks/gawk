@@ -17030,7 +17030,7 @@ File: gawk.info,  Node: Library Exercises,  Prev: Library Functions Summary,  Up
      an intervening value in 'ARGV' is a variable assignment.
 
 
-File: gawk.info,  Node: Sample Programs,  Next: Advanced Features,  Prev: Library Functions,  Up: Top
+File: gawk.info,  Node: Sample Programs,  Next: Namespaces,  Prev: Library Functions,  Up: Top
 
 11 Practical 'awk' Programs
 ***************************
@@ -19733,9 +19733,239 @@ File: gawk.info,  Node: Programs Exercises,  Prev: Programs Summary,  Up: Sample
 machine' into Google.
 
 
-File: gawk.info,  Node: Advanced Features,  Next: Internationalization,  Prev: Sample Programs,  Up: Top
+File: gawk.info,  Node: Namespaces,  Next: Advanced Features,  Prev: Sample Programs,  Up: Top
 
-12 Advanced Features of 'gawk'
+12 Namespaces in 'gawk'
+***********************
+
+This major node describes a feature that is specific to 'gawk'.
+
+* Menu:
+
+
+File: gawk.info,  Node: Global Namespace,  Next: Qualified Names,  Up: Namespaces
+
+12.1 Standard 'awk''s Single Namespace
+======================================
+
+In standard 'awk', there is a single, global, "namespace".  This means
+that _all_ function names and global variable names must be unique.  Two
+different 'awk' source files cannot both define a function named
+'sort()', for example.
+
+   This situation is okay when programs are small, say a few hundred
+lines, or even a few thousand, but it prevents the development of
+reusable libraries of 'awk' functions, and can inadvertently cause
+independently-developed library files to accidentally step on each
+other's "private" global variables (*note Library Names::).
+
+   Most other programming languages solve this issue by providing some
+kind of namespace control: a way to say "this function is in namespace
+X, and that function is in namespace Y."  (Of course, there is then
+still a single namespace for the namespaces, but the hope is that there
+are much fewer namespaces in use by any given program, and thus much
+less chance for collisions.)
+
+   Starting with version *FIXME* 5.0, 'gawk' provides a mechanism to put
+functions and global variables into different namespaces.
+
+
+File: gawk.info,  Node: Qualified Names,  Next: Default Namespace,  Prev: Global Namespace,  Up: Namespaces
+
+12.2 Qualified Names
+====================
+
+A "qualified name" is an identifier that includes a namespace name.  For
+example, one might have a function named 'posix.getpid()'.  Here, the
+namespace is 'posix' and the function name within the namespace is
+'getpid()'.  The namespace and variable or function name are separated
+by a period.  Only one period is allowed in a qualified name.
+
+   You must use fully qualified names from one namespace to access
+variables in another.  This is especially important when using variable
+names to index the special 'SYMTAB' array.
+
+
+File: gawk.info,  Node: Default Namespace,  Next: Changing The Namespace,  Prev: Qualified Names,  Up: Namespaces
+
+12.3 The Default Namespace
+==========================
+
+The default namespace, not surprisingly, is 'awk'.  All of the
+predefined 'awk' and 'gawk' variables are in this namespace, and thus
+have qualified names like 'awk.ARGC', 'awk.NF', and so on.
+
+   Furthermore, even when you have changed the namespace for your
+current source file (*note Changing The Namespace::), 'gawk' forces
+unqualified identifiers whose names are all uppercase letters to be in
+the 'awk' namespace.  This makes it possible for you to easily reference
+'gawk''s global variables from different namespaces.
+
+
+File: gawk.info,  Node: Changing The Namespace,  Next: Namespace Example,  Prev: Default Namespace,  Up: Namespaces
+
+12.4 Changing The Namespace
+===========================
+
+In order to set the current namespace, use an '@namespace' directive at
+the top level of your program:
+
+     @namespace "passwd"
+
+     BEGIN {  }
+     ...
+
+   After this directive, all simple non-uppercase identifiers are placed
+into the 'passwd' namespace.
+
+   You can change the namespace multiple times within a single source
+file, although this is likely to become confusing if you do it a lot.
+
+     NOTE: The namespace concept is one handled while your program is
+     being parsed by 'gawk'.  There is no concept of a "current"
+     namespace during runtime.  Be sure you understand the distinction.
+
+   Each source file for '-i' and '-f' starts out with an implicit '
+"awk"'.
+
+   Similarly, each chunk of command-line code with '-e' has such an
+implicit statement.
+
+   FIXME: The semantics of '-e' change to require it to be syntactic
+unit.
+
+   FIXME: Update doc earlier in this book and change the corresponding
+code.
+
+
+File: gawk.info,  Node: Namespace Example,  Next: Namespace Misc,  Prev: Changing The Namespace,  Up: Namespaces
+
+12.5 Namespace Example
+======================
+
+     # FIXME: fix this up for real, dates etc
+     #
+     # passwd.awk --- access password file information
+     #
+     # Arnold Robbins, arnold@skeeve.com, Public Domain
+     # May 1993
+     # Revised October 2000
+     # Revised December 2010
+     #
+     # Reworked for namespaces May 2017
+
+     @namespace "passwd"
+
+     BEGIN {
+         # tailor this to suit your system
+         Awklib = "/usr/local/libexec/awk/"
+     }
+
+     function Init(    oldfs, oldrs, olddol0, pwcat, using_fw, using_fpat)
+     {
+         if (Inited)
+             return
+
+         oldfs = FS
+         oldrs = RS
+         olddol0 = $0
+         using_fw = (PROCINFO["FS"] == "FIELDWIDTHS")
+         using_fpat = (PROCINFO["FS"] == "FPAT")
+         FS = ":"
+         RS = "\n"
+
+         pwcat = _pw_awklib "pwcat"
+         while ((pwcat | getline) > 0)
+             Byname[$1] = $0
+             Byuid[$3] = $0
+             Bycount[++_pw_total] = $0
+
+         close(pwcat)
+         Count = 0
+         Inited = 1
+         FS = oldfs
+         if (using_fw)
+             FIELDWIDTHS = FIELDWIDTHS
+         else if (using_fpat)
+             FPAT = FPAT
+         RS = oldrs
+         $0 = olddol0
+     }
+
+     function Getpwnam(name)
+     {
+         Init()
+         return Byname[name]
+     }
+
+     function Getpwuid(uid)
+     {
+         Init()
+         return Byuid[uid]
+     }
+
+     function Getpwent()
+     {
+         Init()
+         if (Count < Total)
+             return Bycount[++Count]
+         return ""
+     }
+
+     function Endpwent()
+     {
+         Count = 0
+     }
+
+     # Compatibility:
+
+     @namespace "awk"
+
+     function getpwnam(name)
+     {
+         return passwd.Getpwnam(name)
+     }
+
+     function getpwuid(uid)
+     {
+         return passwd.Getpwuid(uid)
+     }
+
+     function getpwent()
+     {
+         return passwd.Getpwent()
+     }
+
+     function endpwent()
+     {
+         passwd.Endpwent()
+     }
+
+
+File: gawk.info,  Node: Namespace Misc,  Prev: Namespace Example,  Up: Namespaces
+
+12.6 Miscellaneous Notes
+========================
+
+Other notes for reviewers:
+
+Profiler:
+     When profiling, we can add an 'Op_Namespace' to the start of each
+     rule.  If it has changed since the previous one, output an
+     '@namespace' statement.  For each identifier, if it starts with the
+     current namespace, output only the simple part.  For all 'awk.XXX'
+     if 'XXX' is all uppercase, strip off the 'awk' part.
+
+Debugger:
+     Simply prints fully qualified names all the time.  Maybe allow a
+     'namespace XXX' command in the debugger to set the namespace and it
+     will use that to create fully qualified names?  Have to be careful
+     about all uppercase names though.
+
+
+File: gawk.info,  Node: Advanced Features,  Next: Internationalization,  Prev: Namespaces,  Up: Top
+
+13 Advanced Features of 'gawk'
 ******************************
 
      Write documentation as if whoever reads it is a violent psychopath
@@ -19781,7 +20011,7 @@ their own:
 
 File: gawk.info,  Node: Nondecimal Data,  Next: Array Sorting,  Up: Advanced Features
 
-12.1 Allowing Nondecimal Input Data
+13.1 Allowing Nondecimal Input Data
 ===================================
 
 If you run 'gawk' with the '--non-decimal-data' option, you can have
@@ -19824,7 +20054,7 @@ request it.
 
 File: gawk.info,  Node: Array Sorting,  Next: Two-way I/O,  Prev: Nondecimal Data,  Up: Advanced Features
 
-12.2 Controlling Array Traversal and Array Sorting
+13.2 Controlling Array Traversal and Array Sorting
 ==================================================
 
 'gawk' lets you control the order in which a 'for (INDX in ARRAY)' loop
@@ -19843,7 +20073,7 @@ to order the elements during sorting.
 
 File: gawk.info,  Node: Controlling Array Traversal,  Next: Array Sorting Functions,  Up: Array Sorting
 
-12.2.1 Controlling Array Traversal
+13.2.1 Controlling Array Traversal
 ----------------------------------
 
 By default, the order in which a 'for (INDX in ARRAY)' loop scans an
@@ -20081,7 +20311,7 @@ character, which cannot be part of an identifier.
 
 File: gawk.info,  Node: Array Sorting Functions,  Prev: Controlling Array Traversal,  Up: Array Sorting
 
-12.2.2 Sorting Array Values and Indices with 'gawk'
+13.2.2 Sorting Array Values and Indices with 'gawk'
 ---------------------------------------------------
 
 In most 'awk' implementations, sorting an array requires writing a
@@ -20221,7 +20451,7 @@ POSIX-compatibility mode, and because 'asort()' and 'asorti()' are
 
 File: gawk.info,  Node: Two-way I/O,  Next: TCP/IP Networking,  Prev: Array Sorting,  Up: Advanced Features
 
-12.3 Two-Way Communications with Another Process
+13.3 Two-Way Communications with Another Process
 ================================================
 
 It is often useful to be able to send data to a separate program for
@@ -20376,7 +20606,7 @@ in Bash.
 
 File: gawk.info,  Node: TCP/IP Networking,  Next: Profiling,  Prev: Two-way I/O,  Up: Advanced Features
 
-12.4 Using 'gawk' for Network Programming
+13.4 Using 'gawk' for Network Programming
 =========================================
 
      'EMRED':
@@ -20456,7 +20686,7 @@ complete introduction and discussion, as well as extensive examples.
 
 File: gawk.info,  Node: Profiling,  Next: Advanced Features Summary,  Prev: TCP/IP Networking,  Up: Advanced Features
 
-12.5 Profiling Your 'awk' Programs
+13.5 Profiling Your 'awk' Programs
 ==================================
 
 You may produce execution traces of your 'awk' programs.  This is done
@@ -20715,7 +20945,7 @@ improve this in a subsequent release.
 
 File: gawk.info,  Node: Advanced Features Summary,  Prev: Profiling,  Up: Advanced Features
 
-12.6 Summary
+13.6 Summary
 ============
 
    * The '--non-decimal-data' option causes 'gawk' to treat octal- and
@@ -20756,7 +20986,7 @@ File: gawk.info,  Node: Advanced Features Summary,  Prev: Profiling,  Up: Advanc
 
 File: gawk.info,  Node: Internationalization,  Next: Debugger,  Prev: Advanced Features,  Up: Top
 
-13 Internationalization with 'gawk'
+14 Internationalization with 'gawk'
 ***********************************
 
 Once upon a time, computer makers wrote software that worked only in
@@ -20788,7 +21018,7 @@ requirement.
 
 File: gawk.info,  Node: I18N and L10N,  Next: Explaining gettext,  Up: Internationalization
 
-13.1 Internationalization and Localization
+14.1 Internationalization and Localization
 ==========================================
 
 "Internationalization" means writing (or modifying) a program once, in
@@ -20803,7 +21033,7 @@ read.
 
 File: gawk.info,  Node: Explaining gettext,  Next: Programmer i18n,  Prev: I18N and L10N,  Up: Internationalization
 
-13.2 GNU 'gettext'
+14.2 GNU 'gettext'
 ==================
 
 'gawk' uses GNU 'gettext' to provide its internationalization features.
@@ -20950,7 +21180,7 @@ the decimal point, while many Europeans do exactly the opposite:
 
 File: gawk.info,  Node: Programmer i18n,  Next: Translator i18n,  Prev: Explaining gettext,  Up: Internationalization
 
-13.3 Internationalizing 'awk' Programs
+14.3 Internationalizing 'awk' Programs
 ======================================
 
 'gawk' provides the following variables for internationalization:
@@ -21075,7 +21305,7 @@ create and use translations from 'awk'.
 
 File: gawk.info,  Node: Translator i18n,  Next: I18N Example,  Prev: Programmer i18n,  Up: Internationalization
 
-13.4 Translating 'awk' Programs
+14.4 Translating 'awk' Programs
 ===============================
 
 Once a program's translatable strings have been marked, they must be
@@ -21096,7 +21326,7 @@ for 'printf' arguments at runtime is covered.
 
 File: gawk.info,  Node: String Extraction,  Next: Printf Ordering,  Up: Translator i18n
 
-13.4.1 Extracting Marked Strings
+14.4.1 Extracting Marked Strings
 --------------------------------
 
 Once your 'awk' program is working, and all the strings have been marked
@@ -21125,7 +21355,7 @@ for 'guide'.
 
 File: gawk.info,  Node: Printf Ordering,  Next: I18N Portability,  Prev: String Extraction,  Up: Translator i18n
 
-13.4.2 Rearranging 'printf' Arguments
+14.4.2 Rearranging 'printf' Arguments
 -------------------------------------
 
 Format strings for 'printf' and 'sprintf()' (*note Printf::) present a
@@ -21202,7 +21432,7 @@ which the program is first written.
 
 File: gawk.info,  Node: I18N Portability,  Prev: Printf Ordering,  Up: Translator i18n
 
-13.4.3 'awk' Portability Issues
+14.4.3 'awk' Portability Issues
 -------------------------------
 
 'gawk''s internationalization features were purposely chosen to have as
@@ -21267,7 +21497,7 @@ actually almost portable, requiring very little change:
 
 File: gawk.info,  Node: I18N Example,  Next: Gawk I18N,  Prev: Translator i18n,  Up: Internationalization
 
-13.5 A Simple Internationalization Example
+14.5 A Simple Internationalization Example
 ==========================================
 
 Now let's look at a step-by-step example of how to internationalize and
@@ -21360,7 +21590,7 @@ and 'bindtextdomain()' (*note I18N Portability::) are in a file named
 
 File: gawk.info,  Node: Gawk I18N,  Next: I18N Summary,  Prev: I18N Example,  Up: Internationalization
 
-13.6 'gawk' Can Speak Your Language
+14.6 'gawk' Can Speak Your Language
 ===================================
 
 'gawk' itself has been internationalized using the GNU 'gettext'
@@ -21375,7 +21605,7 @@ usage messages, warnings, and fatal errors in the local language.
 
 File: gawk.info,  Node: I18N Summary,  Prev: Gawk I18N,  Up: Internationalization
 
-13.7 Summary
+14.7 Summary
 ============
 
    * Internationalization means writing a program such that it can use
@@ -21407,7 +21637,7 @@ File: gawk.info,  Node: I18N Summary,  Prev: Gawk I18N,  Up: Internationalizatio
 
 File: gawk.info,  Node: Debugger,  Next: Arbitrary Precision Arithmetic,  Prev: Internationalization,  Up: Top
 
-14 Debugging 'awk' Programs
+15 Debugging 'awk' Programs
 ***************************
 
 It would be nice if computer programs worked perfectly the first time
@@ -21432,7 +21662,7 @@ is easy.
 
 File: gawk.info,  Node: Debugging,  Next: Sample Debugging Session,  Up: Debugger
 
-14.1 Introduction to the 'gawk' Debugger
+15.1 Introduction to the 'gawk' Debugger
 ========================================
 
 This minor node introduces debugging in general and begins the
@@ -21447,7 +21677,7 @@ discussion of debugging in 'gawk'.
 
 File: gawk.info,  Node: Debugging Concepts,  Next: Debugging Terms,  Up: Debugging
 
-14.1.1 Debugging in General
+15.1.1 Debugging in General
 ---------------------------
 
 (If you have used debuggers in other languages, you may want to skip
@@ -21486,7 +21716,7 @@ functional program that you or someone else wrote).
 
 File: gawk.info,  Node: Debugging Terms,  Next: Awk Debugging,  Prev: Debugging Concepts,  Up: Debugging
 
-14.1.2 Debugging Concepts
+15.1.2 Debugging Concepts
 -------------------------
 
 Before diving in to the details, we need to introduce several important
@@ -21538,7 +21768,7 @@ defines terms used throughout the rest of this major node:
 
 File: gawk.info,  Node: Awk Debugging,  Prev: Debugging Terms,  Up: Debugging
 
-14.1.3 'awk' Debugging
+15.1.3 'awk' Debugging
 ----------------------
 
 Debugging an 'awk' program has some specific aspects that are not shared
@@ -21560,7 +21790,7 @@ commands.
 
 File: gawk.info,  Node: Sample Debugging Session,  Next: List of Debugger Commands,  Prev: Debugging,  Up: Debugger
 
-14.2 Sample 'gawk' Debugging Session
+15.2 Sample 'gawk' Debugging Session
 ====================================
 
 In order to illustrate the use of 'gawk' as a debugger, let's look at a
@@ -21576,7 +21806,7 @@ example.
 
 File: gawk.info,  Node: Debugger Invocation,  Next: Finding The Bug,  Up: Sample Debugging Session
 
-14.2.1 How to Start the Debugger
+15.2.1 How to Start the Debugger
 --------------------------------
 
 Starting the debugger is almost exactly like running 'gawk' normally,
@@ -21608,7 +21838,7 @@ code has been executed.
 
 File: gawk.info,  Node: Finding The Bug,  Prev: Debugger Invocation,  Up: Sample Debugging Session
 
-14.2.2 Finding the Bug
+15.2.2 Finding the Bug
 ----------------------
 
 Let's say that we are having a problem using (a faulty version of)
@@ -21802,7 +22032,7 @@ and problem solved!
 
 File: gawk.info,  Node: List of Debugger Commands,  Next: Readline Support,  Prev: Sample Debugging Session,  Up: Debugger
 
-14.3 Main Debugger Commands
+15.3 Main Debugger Commands
 ===========================
 
 The 'gawk' debugger command set can be divided into the following
@@ -21841,7 +22071,7 @@ just by hitting 'Enter'.  This works for the commands 'list', 'next',
 
 File: gawk.info,  Node: Breakpoint Control,  Next: Debugger Execution Control,  Up: List of Debugger Commands
 
-14.3.1 Control of Breakpoints
+15.3.1 Control of Breakpoints
 -----------------------------
 
 As we saw earlier, the first thing you probably want to do in a
@@ -21936,7 +22166,7 @@ The commands for controlling breakpoints are:
 
 File: gawk.info,  Node: Debugger Execution Control,  Next: Viewing And Changing Data,  Prev: Breakpoint Control,  Up: List of Debugger Commands
 
-14.3.2 Control of Execution
+15.3.2 Control of Execution
 ---------------------------
 
 Now that your breakpoints are ready, you can start running the program
@@ -22025,7 +22255,7 @@ execution of the program than we saw in our earlier example:
 
 File: gawk.info,  Node: Viewing And Changing Data,  Next: Execution Stack,  Prev: Debugger Execution Control,  Up: List of Debugger Commands
 
-14.3.3 Viewing and Changing Data
+15.3.3 Viewing and Changing Data
 --------------------------------
 
 The commands for viewing and changing variables inside of 'gawk' are:
@@ -22112,7 +22342,7 @@ AWK STATEMENTS
 
 File: gawk.info,  Node: Execution Stack,  Next: Debugger Info,  Prev: Viewing And Changing Data,  Up: List of Debugger Commands
 
-14.3.4 Working with the Stack
+15.3.4 Working with the Stack
 -----------------------------
 
 Whenever you run a program that contains any function calls, 'gawk'
@@ -22152,7 +22382,7 @@ are:
 
 File: gawk.info,  Node: Debugger Info,  Next: Miscellaneous Debugger Commands,  Prev: Execution Stack,  Up: List of Debugger Commands
 
-14.3.5 Obtaining Information About the Program and the Debugger State
+15.3.5 Obtaining Information About the Program and the Debugger State
 ---------------------------------------------------------------------
 
 Besides looking at the values of variables, there is often a need to get
@@ -22262,7 +22492,7 @@ from a file.  The commands are:
 
 File: gawk.info,  Node: Miscellaneous Debugger Commands,  Prev: Debugger Info,  Up: List of Debugger Commands
 
-14.3.6 Miscellaneous Commands
+15.3.6 Miscellaneous Commands
 -----------------------------
 
 There are a few more commands that do not fit into the previous
@@ -22381,7 +22611,7 @@ categories, as follows:
 
 File: gawk.info,  Node: Readline Support,  Next: Limitations,  Prev: List of Debugger Commands,  Up: Debugger
 
-14.4 Readline Support
+15.4 Readline Support
 =====================
 
 If 'gawk' is compiled with the GNU Readline library
@@ -22408,7 +22638,7 @@ Variable name completion
 
 File: gawk.info,  Node: Limitations,  Next: Debugging Summary,  Prev: Readline Support,  Up: Debugger
 
-14.5 Limitations
+15.5 Limitations
 ================
 
 We hope you find the 'gawk' debugger useful and enjoyable to work with,
@@ -22451,7 +22681,7 @@ some limitations.  A few that it's worth being aware of are:
 
 File: gawk.info,  Node: Debugging Summary,  Prev: Limitations,  Up: Debugger
 
-14.6 Summary
+15.6 Summary
 ============
 
    * Programs rarely work correctly the first time.  Finding bugs is
@@ -22482,7 +22712,7 @@ File: gawk.info,  Node: Debugging Summary,  Prev: Limitations,  Up: Debugger
 
 File: gawk.info,  Node: Arbitrary Precision Arithmetic,  Next: Dynamic Extensions,  Prev: Debugger,  Up: Top
 
-15 Arithmetic and Arbitrary-Precision Arithmetic with 'gawk'
+16 Arithmetic and Arbitrary-Precision Arithmetic with 'gawk'
 ************************************************************
 
 This major node introduces some basic concepts relating to how computers
@@ -22513,7 +22743,7 @@ are not quite in agreement.
 
 File: gawk.info,  Node: Computer Arithmetic,  Next: Math Definitions,  Up: Arbitrary Precision Arithmetic
 
-15.1 A General Description of Computer Arithmetic
+16.1 A General Description of Computer Arithmetic
 =================================================
 
 Until now, we have worked with data as either numbers or strings.
@@ -22582,7 +22812,7 @@ ranges.  Integer values are usually either 32 or 64 bits in size.
 Single-precision floating-point values occupy 32 bits, whereas
 double-precision floating-point values occupy 64 bits.  Floating-point
 values are always signed.  The possible ranges of values are shown in
-*note Table 15.1: table-numeric-ranges.
+*note Table 16.1: table-numeric-ranges.
 
 Numeric representation   Minimum value            Maximum value
 ---------------------------------------------------------------------------
@@ -22599,7 +22829,7 @@ Double-precision         2.225074e-308            1.797693e308
 floating point
 (approximate)
 
-Table 15.1: Value ranges for different numeric representations
+Table 16.1: Value ranges for different numeric representations
 
    ---------- Footnotes ----------
 
@@ -22608,7 +22838,7 @@ Table 15.1: Value ranges for different numeric representations
 
 File: gawk.info,  Node: Math Definitions,  Next: MPFR features,  Prev: Computer Arithmetic,  Up: Arbitrary Precision Arithmetic
 
-15.2 Other Stuff to Know
+16.2 Other Stuff to Know
 ========================
 
 The rest of this major node uses a number of terms.  Here are some
@@ -22688,7 +22918,7 @@ IEEE 754 types are 32-bit single precision, 64-bit double precision, and
 precision formats to allow greater precisions and larger exponent
 ranges.  ('awk' uses only the 64-bit double-precision format.)
 
-   *note Table 15.2: table-ieee-formats. lists the precision and
+   *note Table 16.2: table-ieee-formats. lists the precision and
 exponent field values for the basic IEEE 754 binary formats.
 
 Name           Total bits     Precision      Minimum        Maximum
@@ -22698,7 +22928,7 @@ Single         32             24             -126           +127
 Double         64             53             -1022          +1023
 Quadruple      128            113            -16382         +16383
 
-Table 15.2: Basic IEEE format values
+Table 16.2: Basic IEEE format values
 
      NOTE: The precision numbers include the implied leading one that
      gives them one extra bit of significand.
@@ -22711,7 +22941,7 @@ paraphrased, and for the examples.
 
 File: gawk.info,  Node: MPFR features,  Next: FP Math Caution,  Prev: Math Definitions,  Up: Arbitrary Precision Arithmetic
 
-15.3 Arbitrary-Precision Arithmetic Features in 'gawk'
+16.3 Arbitrary-Precision Arithmetic Features in 'gawk'
 ======================================================
 
 By default, 'gawk' uses the double-precision floating-point values
@@ -22749,7 +22979,7 @@ information.
 
 File: gawk.info,  Node: FP Math Caution,  Next: Arbitrary Precision Integers,  Prev: MPFR features,  Up: Arbitrary Precision Arithmetic
 
-15.4 Floating-Point Arithmetic: Caveat Emptor!
+16.4 Floating-Point Arithmetic: Caveat Emptor!
 ==============================================
 
      Math class is tough!
@@ -22783,7 +23013,7 @@ in computer science.
 
 File: gawk.info,  Node: Inexactness of computations,  Next: Getting Accuracy,  Up: FP Math Caution
 
-15.4.1 Floating-Point Arithmetic Is Not Exact
+16.4.1 Floating-Point Arithmetic Is Not Exact
 ---------------------------------------------
 
 Binary floating-point representations and arithmetic are inexact.
@@ -22804,7 +23034,7 @@ be sure of the number of significant decimal places in the final result.
 
 File: gawk.info,  Node: Inexact representation,  Next: Comparing FP Values,  Up: Inexactness of computations
 
-15.4.1.1 Many Numbers Cannot Be Represented Exactly
+16.4.1.1 Many Numbers Cannot Be Represented Exactly
 ...................................................
 
 So, before you start to write any code, you should think about what you
@@ -22835,7 +23065,7 @@ previous example, produces an output identical to the input.
 
 File: gawk.info,  Node: Comparing FP Values,  Next: Errors accumulate,  Prev: Inexact representation,  Up: Inexactness of computations
 
-15.4.1.2 Be Careful Comparing Values
+16.4.1.2 Be Careful Comparing Values
 ....................................
 
 Because the underlying representation can be a little bit off from the
@@ -22864,7 +23094,7 @@ defined elsewhere in your program.)
 
 File: gawk.info,  Node: Errors accumulate,  Prev: Comparing FP Values,  Up: Inexactness of computations
 
-15.4.1.3 Errors Accumulate
+16.4.1.3 Errors Accumulate
 ..........................
 
 The loss of accuracy during a single computation with floating-point
@@ -22912,7 +23142,7 @@ representations yield an unexpected result:
 
 File: gawk.info,  Node: Getting Accuracy,  Next: Try To Round,  Prev: Inexactness of computations,  Up: FP Math Caution
 
-15.4.2 Getting the Accuracy You Need
+16.4.2 Getting the Accuracy You Need
 ------------------------------------
 
 Can arbitrary-precision arithmetic give exact results?  There are no
@@ -22973,7 +23203,7 @@ hand is often the correct approach in such situations.
 
 File: gawk.info,  Node: Try To Round,  Next: Setting precision,  Prev: Getting Accuracy,  Up: FP Math Caution
 
-15.4.3 Try a Few Extra Bits of Precision and Rounding
+16.4.3 Try a Few Extra Bits of Precision and Rounding
 -----------------------------------------------------
 
 Instead of arbitrary-precision floating-point arithmetic, often all you
@@ -23000,7 +23230,7 @@ iterations:
 
 File: gawk.info,  Node: Setting precision,  Next: Setting the rounding mode,  Prev: Try To Round,  Up: FP Math Caution
 
-15.4.4 Setting the Precision
+16.4.4 Setting the Precision
 ----------------------------
 
 'gawk' uses a global working precision; it does not keep track of the
@@ -23009,7 +23239,7 @@ operation or calling a built-in function rounds the result to the
 current working precision.  The default working precision is 53 bits,
 which you can modify using the predefined variable 'PREC'.  You can also
 set the value to one of the predefined case-insensitive strings shown in
-*note Table 15.3: table-predefined-precision-strings, to emulate an IEEE
+*note Table 16.3: table-predefined-precision-strings, to emulate an IEEE
 754 binary format.
 
 'PREC'       IEEE 754 binary format
@@ -23020,7 +23250,7 @@ set the value to one of the predefined case-insensitive strings shown in
 '"quad"'     Basic 128-bit quadruple precision
 '"oct"'      256-bit octuple precision
 
-Table 15.3: Predefined precision strings for 'PREC'
+Table 16.3: Predefined precision strings for 'PREC'
 
    The following example illustrates the effects of changing precision
 on arithmetic operations:
@@ -23057,12 +23287,12 @@ on arithmetic operations:
 
 File: gawk.info,  Node: Setting the rounding mode,  Prev: Setting precision,  Up: FP Math Caution
 
-15.4.5 Setting the Rounding Mode
+16.4.5 Setting the Rounding Mode
 --------------------------------
 
 The 'ROUNDMODE' variable provides program-level control over the
 rounding mode.  The correspondence between 'ROUNDMODE' and the IEEE
-rounding modes is shown in *note Table 15.4: table-gawk-rounding-modes.
+rounding modes is shown in *note Table 16.4: table-gawk-rounding-modes.
 
 Rounding mode                    IEEE name              'ROUNDMODE'
 ---------------------------------------------------------------------------
@@ -23073,10 +23303,10 @@ Round toward zero                'roundTowardZero'      '"Z"' or '"z"'
 Round to nearest, ties away      'roundTiesToAway'      '"A"' or '"a"'
 from zero
 
-Table 15.4: 'gawk' rounding modes
+Table 16.4: 'gawk' rounding modes
 
    'ROUNDMODE' has the default value '"N"', which selects the IEEE 754
-rounding mode 'roundTiesToEven'.  In *note Table 15.4:
+rounding mode 'roundTiesToEven'.  In *note Table 16.4:
 table-gawk-rounding-modes, the value '"A"' selects 'roundTiesToAway'.
 This is only available if your version of the MPFR library supports it;
 otherwise, setting 'ROUNDMODE' to '"A"' has no effect.
@@ -23148,7 +23378,7 @@ round halfway cases for 'printf'.
 
 File: gawk.info,  Node: Arbitrary Precision Integers,  Next: Checking for MPFR,  Prev: FP Math Caution,  Up: Arbitrary Precision Arithmetic
 
-15.5 Arbitrary-Precision Integer Arithmetic with 'gawk'
+16.5 Arbitrary-Precision Integer Arithmetic with 'gawk'
 =======================================================
 
 When given the '-M' option, 'gawk' performs all integer arithmetic using
@@ -23278,7 +23508,7 @@ Wolfram Web Resource
 
 File: gawk.info,  Node: Checking for MPFR,  Next: POSIX Floating Point Problems,  Prev: Arbitrary Precision Integers,  Up: Arbitrary Precision Arithmetic
 
-15.6 How To Check If MPFR Is Available
+16.6 How To Check If MPFR Is Available
 ======================================
 
 Occasionally, you might like to be able to check if 'gawk' was invoked
@@ -23315,7 +23545,7 @@ arbitrary-precision arithmetic is available:
 
 File: gawk.info,  Node: POSIX Floating Point Problems,  Next: Floating point summary,  Prev: Checking for MPFR,  Up: Arbitrary Precision Arithmetic
 
-15.7 Standards Versus Existing Practice
+16.7 Standards Versus Existing Practice
 =======================================
 
 Historically, 'awk' has converted any nonnumeric-looking string to the
@@ -23402,7 +23632,7 @@ and infinity values.  The solution implemented in 'gawk' is as follows:
 
 File: gawk.info,  Node: Floating point summary,  Prev: POSIX Floating Point Problems,  Up: Arbitrary Precision Arithmetic
 
-15.8 Summary
+16.8 Summary
 ============
 
    * Most computer arithmetic is done using either integers or
@@ -23455,7 +23685,7 @@ File: gawk.info,  Node: Floating point summary,  Prev: POSIX Floating Point Prob
 
 File: gawk.info,  Node: Dynamic Extensions,  Next: Language History,  Prev: Arbitrary Precision Arithmetic,  Up: Top
 
-16 Writing Extensions for 'gawk'
+17 Writing Extensions for 'gawk'
 ********************************
 
 It is possible to add new functions written in C or C++ to 'gawk' using
@@ -23489,7 +23719,7 @@ sample extensions are automatically built and installed when 'gawk' is.
 
 File: gawk.info,  Node: Extension Intro,  Next: Plugin License,  Up: Dynamic Extensions
 
-16.1 Introduction
+17.1 Introduction
 =================
 
 An "extension" (sometimes called a "plug-in") is a piece of external
@@ -23516,7 +23746,7 @@ and design.
 
 File: gawk.info,  Node: Plugin License,  Next: Extension Mechanism Outline,  Prev: Extension Intro,  Up: Dynamic Extensions
 
-16.2 Extension Licensing
+17.2 Extension Licensing
 ========================
 
 Every dynamic extension must be distributed under a license that is
@@ -23536,12 +23766,12 @@ symbol exists in the global scope.  Something like this is enough:
 
 File: gawk.info,  Node: Extension Mechanism Outline,  Next: Extension API Description,  Prev: Plugin License,  Up: Dynamic Extensions
 
-16.3 How It Works at a High Level
+17.3 How It Works at a High Level
 =================================
 
 Communication between 'gawk' and an extension is two-way.  First, when
 an extension is loaded, 'gawk' passes it a pointer to a 'struct' whose
-fields are function pointers.  This is shown in *note Figure 16.1:
+fields are function pointers.  This is shown in *note Figure 17.1:
 figure-load-extension.
 
  [image src="api-figure1.png" alt="Loading the extension" text="                          API
@@ -23569,12 +23799,12 @@ figure-load-extension.
 
     gawk Main Program Address Space              Extension" ]
 
-Figure 16.1: Loading the extension
+Figure 17.1: Loading the extension
 
    The extension can call functions inside 'gawk' through these function
 pointers, at runtime, without needing (link-time) access to 'gawk''s
 symbols.  One of these function pointers is to a function for
-"registering" new functions.  This is shown in *note Figure 16.2:
+"registering" new functions.  This is shown in *note Figure 17.2:
 figure-register-new-function.
 
  [image src="api-figure2.png" alt="Registering a new Function" text="            register_ext_func({ \"chdir\", do_chdir, 1 });
@@ -23590,13 +23820,13 @@ figure-register-new-function.
 
     gawk Main Program Address Space              Extension" ]
 
-Figure 16.2: Registering a new function
+Figure 17.2: Registering a new function
 
    In the other direction, the extension registers its new functions
 with 'gawk' by passing function pointers to the functions that provide
 the new feature ('do_chdir()', for example).  'gawk' associates the
 function pointer with a name and can then call it, using a defined
-calling convention.  This is shown in *note Figure 16.3:
+calling convention.  This is shown in *note Figure 17.3:
 figure-call-new-function.
 
  [image src="api-figure3.png" alt="Calling the new function" text="    BEGIN {
@@ -23613,7 +23843,7 @@ figure-call-new-function.
 
     gawk Main Program Address Space              Extension" ]
 
-Figure 16.3: Calling the new function
+Figure 17.3: Calling the new function
 
    The 'do_XXX()' function, in turn, then uses the function pointers in
 the API 'struct' to do its work, such as updating variables or arrays,
@@ -23645,7 +23875,7 @@ Example::) and also in the 'testext.c' code for testing the APIs.
 
 File: gawk.info,  Node: Extension API Description,  Next: Finding Extensions,  Prev: Extension Mechanism Outline,  Up: Dynamic Extensions
 
-16.4 API Description
+17.4 API Description
 ====================
 
 C or C++ code for an extension must include the header file 'gawkapi.h',
@@ -23677,7 +23907,7 @@ API in detail.
 
 File: gawk.info,  Node: Extension API Functions Introduction,  Next: General Data Types,  Up: Extension API Description
 
-16.4.1 Introduction
+17.4.1 Introduction
 -------------------
 
 Access to facilities within 'gawk' is achieved by calling through
@@ -23807,7 +24037,7 @@ macros as if they were functions.
 
 File: gawk.info,  Node: General Data Types,  Next: Memory Allocation Functions,  Prev: Extension API Functions Introduction,  Up: Extension API Description
 
-16.4.2 General-Purpose Data Types
+17.4.2 General-Purpose Data Types
 ---------------------------------
 
      I have a true love/hate relationship with unions.
@@ -23978,7 +24208,7 @@ See also the entry for "Cookie" in the *note Glossary::.
 
 File: gawk.info,  Node: Memory Allocation Functions,  Next: Constructor Functions,  Prev: General Data Types,  Up: Extension API Description
 
-16.4.3 Memory Allocation Functions and Convenience Macros
+17.4.3 Memory Allocation Functions and Convenience Macros
 ---------------------------------------------------------
 
 The API provides a number of "memory allocation" functions for
@@ -24054,7 +24284,7 @@ Unix-like systems as well.
 
 File: gawk.info,  Node: Constructor Functions,  Next: Registration Functions,  Prev: Memory Allocation Functions,  Up: Extension API Description
 
-16.4.4 Constructor Functions
+17.4.4 Constructor Functions
 ----------------------------
 
 The API provides a number of "constructor" functions for creating string
@@ -24117,7 +24347,7 @@ code would use them:
 
 File: gawk.info,  Node: Registration Functions,  Next: Printing Messages,  Prev: Constructor Functions,  Up: Extension API Description
 
-16.4.5 Registration Functions
+17.4.5 Registration Functions
 -----------------------------
 
 This minor node describes the API functions for registering parts of
@@ -24135,7 +24365,7 @@ your extension with 'gawk'.
 
 File: gawk.info,  Node: Extension Functions,  Next: Exit Callback Functions,  Up: Registration Functions
 
-16.4.5.1 Registering An Extension Function
+17.4.5.1 Registering An Extension Function
 ..........................................
 
 Extension functions are described by the following record:
@@ -24248,7 +24478,7 @@ A minimum number of arguments is required, and no more than a maximum is allowed
 
 File: gawk.info,  Node: Exit Callback Functions,  Next: Extension Version String,  Prev: Extension Functions,  Up: Registration Functions
 
-16.4.5.2 Registering An Exit Callback Function
+17.4.5.2 Registering An Exit Callback Function
 ..............................................
 
 An "exit callback" function is a function that 'gawk' calls before it
@@ -24278,7 +24508,7 @@ order--that is, in the reverse order in which they are registered with
 
 File: gawk.info,  Node: Extension Version String,  Next: Input Parsers,  Prev: Exit Callback Functions,  Up: Registration Functions
 
-16.4.5.3 Registering An Extension Version String
+17.4.5.3 Registering An Extension Version String
 ................................................
 
 You can register a version string that indicates the name and version of
@@ -24295,7 +24525,7 @@ invoked with the '--version' option.
 
 File: gawk.info,  Node: Input Parsers,  Next: Output Wrappers,  Prev: Extension Version String,  Up: Registration Functions
 
-16.4.5.4 Customized Input Parsers
+17.4.5.4 Customized Input Parsers
 .................................
 
 By default, 'gawk' reads text files as its input.  It uses the value of
@@ -24573,7 +24803,7 @@ example.
 
 File: gawk.info,  Node: Output Wrappers,  Next: Two-way processors,  Prev: Input Parsers,  Up: Registration Functions
 
-16.4.5.5 Customized Output Wrappers
+17.4.5.5 Customized Output Wrappers
 ...................................
 
 An "output wrapper" is the mirror image of an input parser.  It allows
@@ -24679,7 +24909,7 @@ just use normally.
 
 File: gawk.info,  Node: Two-way processors,  Prev: Output Wrappers,  Up: Registration Functions
 
-16.4.5.6 Customized Two-way Processors
+17.4.5.6 Customized Two-way Processors
 ......................................
 
 A "two-way processor" combines an input parser and an output wrapper for
@@ -24733,7 +24963,7 @@ and 'XXX_take_control_of()'.
 
 File: gawk.info,  Node: Printing Messages,  Next: Updating ERRNO,  Prev: Registration Functions,  Up: Extension API Description
 
-16.4.6 Printing Messages
+17.4.6 Printing Messages
 ------------------------
 
 You can print different kinds of warning messages from your extension,
@@ -24767,7 +24997,7 @@ the pity.
 
 File: gawk.info,  Node: Updating ERRNO,  Next: Requesting Values,  Prev: Printing Messages,  Up: Extension API Description
 
-16.4.7 Updating 'ERRNO'
+17.4.7 Updating 'ERRNO'
 -----------------------
 
 The following functions allow you to update the 'ERRNO' variable:
@@ -24788,7 +25018,7 @@ The following functions allow you to update the 'ERRNO' variable:
 
 File: gawk.info,  Node: Requesting Values,  Next: Accessing Parameters,  Prev: Updating ERRNO,  Up: Extension API Description
 
-16.4.8 Requesting Values
+17.4.8 Requesting Values
 ------------------------
 
 All of the functions that return values from 'gawk' work in the same
@@ -24798,7 +25028,7 @@ function returns true and fills in the 'awk_value_t' result.  Otherwise,
 the function returns false, and the 'val_type' member indicates the type
 of the actual value.  You may then print an error message or reissue the
 request for the actual value type, as appropriate.  This behavior is
-summarized in *note Table 16.1: table-value-types-returned.
+summarized in *note Table 17.1: table-value-types-returned.
 
                                      Type of Actual Value
 --------------------------------------------------------------------------
@@ -24814,12 +25044,12 @@ Requested   Array       false    false    false    false   Array   false
             Value       false    false    false    false   false   false
             cookie
 
-Table 16.1: API value types returned
+Table 17.1: API value types returned
 
 
 File: gawk.info,  Node: Accessing Parameters,  Next: Symbol Table Access,  Prev: Requesting Values,  Up: Extension API Description
 
-16.4.9 Accessing and Updating Parameters
+17.4.9 Accessing and Updating Parameters
 ----------------------------------------
 
 Two functions give you access to the arguments (parameters) passed to
@@ -24831,7 +25061,7 @@ your extension function.  They are:
      Fill in the 'awk_value_t' structure pointed to by 'result' with the
      'count'th argument.  Return true if the actual type matches
      'wanted', and false otherwise.  In the latter case,
-     'result->val_type' indicates the actual type (*note Table 16.1:
+     'result->val_type' indicates the actual type (*note Table 17.1:
      table-value-types-returned.).  Counts are zero-based--the first
      argument is numbered zero, the second one, and so on.  'wanted'
      indicates the type of value expected.
@@ -24845,7 +25075,7 @@ your extension function.  They are:
 
 File: gawk.info,  Node: Symbol Table Access,  Next: Array Manipulation,  Prev: Accessing Parameters,  Up: Extension API Description
 
-16.4.10 Symbol Table Access
+17.4.10 Symbol Table Access
 ---------------------------
 
 Two sets of routines provide access to global variables, and one set
@@ -24860,7 +25090,7 @@ allows you to create and release cached values.
 
 File: gawk.info,  Node: Symbol table by name,  Next: Symbol table by cookie,  Up: Symbol Table Access
 
-16.4.10.1 Variable Access and Update by Name
+17.4.10.1 Variable Access and Update by Name
 ............................................
 
 The following routines provide the ability to access and update global
@@ -24877,7 +25107,7 @@ termed a "symbol table".  The functions are as follows:
      regular C string.  'wanted' indicates the type of value expected.
      Return true if the actual type matches 'wanted', and false
      otherwise.  In the latter case, 'result->val_type' indicates the
-     actual type (*note Table 16.1: table-value-types-returned.).
+     actual type (*note Table 17.1: table-value-types-returned.).
 
 'awk_bool_t sym_update(const char *name, awk_value_t *value);'
      Update the variable named by the string 'name', which is a regular
@@ -24896,7 +25126,7 @@ change any of those variables.
 
 File: gawk.info,  Node: Symbol table by cookie,  Next: Cached values,  Prev: Symbol table by name,  Up: Symbol Table Access
 
-16.4.10.2 Variable Access and Update by Cookie
+17.4.10.2 Variable Access and Update by Cookie
 ..............................................
 
 A "scalar cookie" is an opaque handle that provides access to a global
@@ -25010,7 +25240,7 @@ like this:
 
 File: gawk.info,  Node: Cached values,  Prev: Symbol table by cookie,  Up: Symbol Table Access
 
-16.4.10.3 Creating and Using Cached Values
+17.4.10.3 Creating and Using Cached Values
 ..........................................
 
 The routines in this minor node allow you to create and release cached
@@ -25107,7 +25337,7 @@ using 'release_value()'.
 
 File: gawk.info,  Node: Array Manipulation,  Next: Redirection API,  Prev: Symbol Table Access,  Up: Extension API Description
 
-16.4.11 Array Manipulation
+17.4.11 Array Manipulation
 --------------------------
 
 The primary data structure(1) in 'awk' is the associative array (*note
@@ -25134,7 +25364,7 @@ arrays of arrays (*note General Data Types::).
 
 File: gawk.info,  Node: Array Data Types,  Next: Array Functions,  Up: Array Manipulation
 
-16.4.11.1 Array Data Types
+17.4.11.1 Array Data Types
 ..........................
 
 The data types associated with arrays are as follows:
@@ -25201,7 +25431,7 @@ overuse this term.
 
 File: gawk.info,  Node: Array Functions,  Next: Flattening Arrays,  Prev: Array Data Types,  Up: Array Manipulation
 
-16.4.11.2 Array Functions
+17.4.11.2 Array Functions
 .........................
 
 The following functions relate to individual array elements:
@@ -25219,7 +25449,7 @@ The following functions relate to individual array elements:
      value of the element whose index is 'index'.  'wanted' specifies
      the type of value you wish to retrieve.  Return false if 'wanted'
      does not match the actual type or if 'index' is not in the array
-     (*note Table 16.1: table-value-types-returned.).
+     (*note Table 17.1: table-value-types-returned.).
 
      The value for 'index' can be numeric, in which case 'gawk' converts
      it to a string.  Using nonintegral values is possible, but requires
@@ -25288,7 +25518,7 @@ The following functions relate to individual array elements:
 
 File: gawk.info,  Node: Flattening Arrays,  Next: Creating Arrays,  Prev: Array Functions,  Up: Array Manipulation
 
-16.4.11.3 Working With All The Elements of an Array
+17.4.11.3 Working With All The Elements of an Array
 ...................................................
 
 To "flatten" an array is to create a structure that represents the full
@@ -25461,7 +25691,7 @@ return value to success, and returns:
 
 File: gawk.info,  Node: Creating Arrays,  Prev: Flattening Arrays,  Up: Array Manipulation
 
-16.4.11.4 How To Create and Populate Arrays
+17.4.11.4 How To Create and Populate Arrays
 ...........................................
 
 Besides working with arrays created by 'awk' code, you can create arrays
@@ -25600,7 +25830,7 @@ environment variable.)
 
 File: gawk.info,  Node: Redirection API,  Next: Extension API Variables,  Prev: Array Manipulation,  Up: Extension API Description
 
-16.4.12 Accessing and Manipulating Redirections
+17.4.12 Accessing and Manipulating Redirections
 -----------------------------------------------
 
 The following function allows extensions to access and manipulate
@@ -25669,7 +25899,7 @@ I/O multiplexing and a socket library.
 
 File: gawk.info,  Node: Extension API Variables,  Next: Extension API Boilerplate,  Prev: Redirection API,  Up: Extension API Description
 
-16.4.13 API Variables
+17.4.13 API Variables
 ---------------------
 
 The API provides two sets of variables.  The first provides information
@@ -25686,7 +25916,7 @@ information about how 'gawk' was invoked.
 
 File: gawk.info,  Node: Extension Versioning,  Next: Extension API Informational Variables,  Up: Extension API Variables
 
-16.4.13.1 API Version Constants and Variables
+17.4.13.1 API Version Constants and Variables
 .............................................
 
 The API provides both a "major" and a "minor" version number.  The API
@@ -25699,7 +25929,7 @@ API Version   C Preprocessor Define      enum constant
 Major         'gawk_api_major_version'   'GAWK_API_MAJOR_VERSION'
 Minor         'gawk_api_minor_version'   'GAWK_API_MINOR_VERSION'
 
-Table 16.2: gawk API version constants
+Table 17.2: gawk API version constants
 
    The minor version increases when new functions are added to the API.
 Such new functions are always added to the end of the API 'struct'.
@@ -25738,7 +25968,7 @@ Boilerplate::).
 
 File: gawk.info,  Node: Extension API Informational Variables,  Prev: Extension Versioning,  Up: Extension API Variables
 
-16.4.13.2 Informational Variables
+17.4.13.2 Informational Variables
 .................................
 
 The API provides access to several variables that describe whether the
@@ -25773,7 +26003,7 @@ change during execution.
 
 File: gawk.info,  Node: Extension API Boilerplate,  Next: Changes from API V1,  Prev: Extension API Variables,  Up: Extension API Description
 
-16.4.14 Boilerplate Code
+17.4.14 Boilerplate Code
 ------------------------
 
 As mentioned earlier (*note Extension Mechanism Outline::), the function
@@ -25874,7 +26104,7 @@ does the following:
 
 File: gawk.info,  Node: Changes from API V1,  Prev: Extension API Boilerplate,  Up: Extension API Description
 
-16.4.15 Changes From Version 1 of the API
+17.4.15 Changes From Version 1 of the API
 -----------------------------------------
 
 The current API is _not_ binary compatible with version 1 of the API.
@@ -25890,7 +26120,7 @@ implementation function.
 
 File: gawk.info,  Node: Finding Extensions,  Next: Extension Example,  Prev: Extension API Description,  Up: Dynamic Extensions
 
-16.5 How 'gawk' Finds Extensions
+17.5 How 'gawk' Finds Extensions
 ================================
 
 Compiled extensions have to be installed in a directory where 'gawk' can
@@ -25902,7 +26132,7 @@ compiled extensions.  *Note AWKLIBPATH Variable:: for more information.
 
 File: gawk.info,  Node: Extension Example,  Next: Extension Samples,  Prev: Finding Extensions,  Up: Dynamic Extensions
 
-16.6 Example: Some File Functions
+17.6 Example: Some File Functions
 =================================
 
      No matter where you go, there you are.
@@ -25923,7 +26153,7 @@ in an extension.
 
 File: gawk.info,  Node: Internal File Description,  Next: Internal File Ops,  Up: Extension Example
 
-16.6.1 Using 'chdir()' and 'stat()'
+17.6.1 Using 'chdir()' and 'stat()'
 -----------------------------------
 
 This minor node shows how to use the new functions at the 'awk' level
@@ -26053,7 +26283,7 @@ Elements::):
 
 File: gawk.info,  Node: Internal File Ops,  Next: Using Internal File Ops,  Prev: Internal File Description,  Up: Extension Example
 
-16.6.2 C Code for 'chdir()' and 'stat()'
+17.6.2 C Code for 'chdir()' and 'stat()'
 ----------------------------------------
 
 Here is the C code for these extensions.(1)
@@ -26396,7 +26626,7 @@ version.
 
 File: gawk.info,  Node: Using Internal File Ops,  Prev: Internal File Ops,  Up: Extension Example
 
-16.6.3 Integrating the Extensions
+17.6.3 Integrating the Extensions
 ---------------------------------
 
 Now that the code is written, it must be possible to add it at runtime
@@ -26477,7 +26707,7 @@ file.  *Note gawkextlib:: for Internet links to the tools.
 
 File: gawk.info,  Node: Extension Samples,  Next: gawkextlib,  Prev: Extension Example,  Up: Dynamic Extensions
 
-16.7 The Sample Extensions in the 'gawk' Distribution
+17.7 The Sample Extensions in the 'gawk' Distribution
 =====================================================
 
 This minor node provides a brief overview of the sample extensions that
@@ -26507,7 +26737,7 @@ the extension API.
 
 File: gawk.info,  Node: Extension Sample File Functions,  Next: Extension Sample Fnmatch,  Up: Extension Samples
 
-16.7.1 File-Related Functions
+17.7.1 File-Related Functions
 -----------------------------
 
 The 'filefuncs' extension provides three different functions, as
@@ -26677,7 +26907,7 @@ the 'fts()' extension function.
 
 File: gawk.info,  Node: Extension Sample Fnmatch,  Next: Extension Sample Fork,  Prev: Extension Sample File Functions,  Up: Extension Samples
 
-16.7.2 Interface to 'fnmatch()'
+17.7.2 Interface to 'fnmatch()'
 -------------------------------
 
 This extension provides an interface to the C library 'fnmatch()'
@@ -26728,7 +26958,7 @@ Array element      Corresponding flag defined by 'fnmatch()'
 
 File: gawk.info,  Node: Extension Sample Fork,  Next: Extension Sample Inplace,  Prev: Extension Sample Fnmatch,  Up: Extension Samples
 
-16.7.3 Interface to 'fork()', 'wait()', and 'waitpid()'
+17.7.3 Interface to 'fork()', 'wait()', and 'waitpid()'
 -------------------------------------------------------
 
 The 'fork' extension adds three functions, as follows:
@@ -26765,7 +26995,7 @@ The 'fork' extension adds three functions, as follows:
 
 File: gawk.info,  Node: Extension Sample Inplace,  Next: Extension Sample Ord,  Prev: Extension Sample Fork,  Up: Extension Samples
 
-16.7.4 Enabling In-Place File Editing
+17.7.4 Enabling In-Place File Editing
 -------------------------------------
 
 The 'inplace' extension emulates GNU 'sed''s '-i' option, which performs
@@ -26846,7 +27076,7 @@ signal is received, a temporary file may be left behind.
 
 File: gawk.info,  Node: Extension Sample Ord,  Next: Extension Sample Readdir,  Prev: Extension Sample Inplace,  Up: Extension Samples
 
-16.7.5 Character and Numeric values: 'ord()' and 'chr()'
+17.7.5 Character and Numeric values: 'ord()' and 'chr()'
 --------------------------------------------------------
 
 The 'ordchr' extension adds two functions, named 'ord()' and 'chr()', as
@@ -26873,7 +27103,7 @@ same name.  Here is an example:
 
 File: gawk.info,  Node: Extension Sample Readdir,  Next: Extension Sample Revout,  Prev: Extension Sample Ord,  Up: Extension Samples
 
-16.7.6 Reading Directories
+17.7.6 Reading Directories
 --------------------------
 
 The 'readdir' extension adds an input parser for directories.  The usage
@@ -26890,7 +27120,7 @@ number and the file name, separated by a forward slash character.  On
 systems where the directory entry contains the file type, the record has
 a third field (also separated by a slash), which is a single letter
 indicating the type of the file.  The letters and their corresponding
-file types are shown in *note Table 16.3: table-readdir-file-types.
+file types are shown in *note Table 17.3: table-readdir-file-types.
 
 Letter  File type
 --------------------------------------------------------------------------
@@ -26903,7 +27133,7 @@ Letter  File type
 's'     Socket
 'u'     Anything else (unknown)
 
-Table 16.3: File types returned by the 'readdir' extension
+Table 17.3: File types returned by the 'readdir' extension
 
    On systems without the file type information, the third field is
 always 'u'.
@@ -26923,7 +27153,7 @@ always 'u'.
 
 File: gawk.info,  Node: Extension Sample Revout,  Next: Extension Sample Rev2way,  Prev: Extension Sample Readdir,  Up: Extension Samples
 
-16.7.7 Reversing Output
+17.7.7 Reversing Output
 -----------------------
 
 The 'revoutput' extension adds a simple output wrapper that reverses the
@@ -26943,7 +27173,7 @@ unwary.  Here is an example:
 
 File: gawk.info,  Node: Extension Sample Rev2way,  Next: Extension Sample Read write array,  Prev: Extension Sample Revout,  Up: Extension Samples
 
-16.7.8 Two-Way I/O Example
+17.7.8 Two-Way I/O Example
 --------------------------
 
 The 'revtwoway' extension adds a simple two-way processor that reverses
@@ -26967,7 +27197,7 @@ to use it:
 
 File: gawk.info,  Node: Extension Sample Read write array,  Next: Extension Sample Readfile,  Prev: Extension Sample Rev2way,  Up: Extension Samples
 
-16.7.9 Dumping and Restoring an Array
+17.7.9 Dumping and Restoring an Array
 -------------------------------------
 
 The 'rwarray' extension adds two functions, named 'writea()' and
@@ -27014,7 +27244,7 @@ on systems with a different one, but this has not been tried.
 
 File: gawk.info,  Node: Extension Sample Readfile,  Next: Extension Sample Time,  Prev: Extension Sample Read write array,  Up: Extension Samples
 
-16.7.10 Reading an Entire File
+17.7.10 Reading an Entire File
 ------------------------------
 
 The 'readfile' extension adds a single function named 'readfile()', and
@@ -27047,7 +27277,7 @@ an input parser:
 
 File: gawk.info,  Node: Extension Sample Time,  Next: Extension Sample API Tests,  Prev: Extension Sample Readfile,  Up: Extension Samples
 
-16.7.11 Extension Time Functions
+17.7.11 Extension Time Functions
 --------------------------------
 
 The 'time' extension adds two functions, named 'gettimeofday()' and
@@ -27078,7 +27308,7 @@ The 'time' extension adds two functions, named 'gettimeofday()' and
 
 File: gawk.info,  Node: Extension Sample API Tests,  Prev: Extension Sample Time,  Up: Extension Samples
 
-16.7.12 API Tests
+17.7.12 API Tests
 -----------------
 
 The 'testext' extension exercises parts of the extension API that are
@@ -27090,7 +27320,7 @@ code and runs the tests.  See the source file for more information.
 
 File: gawk.info,  Node: gawkextlib,  Next: Extension summary,  Prev: Extension Samples,  Up: Dynamic Extensions
 
-16.8 The 'gawkextlib' Project
+17.8 The 'gawkextlib' Project
 =============================
 
 The 'gawkextlib' (http://sourceforge.net/projects/gawkextlib/) project
@@ -27156,7 +27386,7 @@ project's website for more information.
 
 File: gawk.info,  Node: Extension summary,  Next: Extension Exercises,  Prev: gawkextlib,  Up: Dynamic Extensions
 
-16.9 Summary
+17.9 Summary
 ============
 
    * You can write extensions (sometimes called plug-ins) for 'gawk' in
@@ -27244,7 +27474,7 @@ File: gawk.info,  Node: Extension summary,  Next: Extension Exercises,  Prev: ga
 
 File: gawk.info,  Node: Extension Exercises,  Prev: Extension summary,  Up: Dynamic Extensions
 
-16.10 Exercises
+17.10 Exercises
 ===============
 
   1. Add functions to implement system calls such as 'chown()',
@@ -36062,261 +36292,268 @@ Node: Walking Arrays699891
 Node: Library Functions Summary702899
 Node: Library Exercises704305
 Node: Sample Programs704770
-Node: Running Examples705540
-Node: Clones706268
-Node: Cut Program707492
-Node: Egrep Program717421
-Ref: Egrep Program-Footnote-1724933
-Node: Id Program725043
-Node: Split Program728723
-Ref: Split Program-Footnote-1732182
-Node: Tee Program732311
-Node: Uniq Program735101
-Node: Wc Program742527
-Ref: Wc Program-Footnote-1746782
-Node: Miscellaneous Programs746876
-Node: Dupword Program748089
-Node: Alarm Program750119
-Node: Translate Program754974
-Ref: Translate Program-Footnote-1759539
-Node: Labels Program759809
-Ref: Labels Program-Footnote-1763160
-Node: Word Sorting763244
-Node: History Sorting767316
-Node: Extract Program769151
-Node: Simple Sed776680
-Node: Igawk Program779754
-Ref: Igawk Program-Footnote-1794085
-Ref: Igawk Program-Footnote-2794287
-Ref: Igawk Program-Footnote-3794409
-Node: Anagram Program794524
-Node: Signature Program797586
-Node: Programs Summary798833
-Node: Programs Exercises800047
-Ref: Programs Exercises-Footnote-1804176
-Node: Advanced Features804267
-Node: Nondecimal Data806257
-Node: Array Sorting807848
-Node: Controlling Array Traversal808548
-Ref: Controlling Array Traversal-Footnote-1816915
-Node: Array Sorting Functions817033
-Ref: Array Sorting Functions-Footnote-1822124
-Node: Two-way I/O822320
-Ref: Two-way I/O-Footnote-1828871
-Ref: Two-way I/O-Footnote-2829058
-Node: TCP/IP Networking829140
-Node: Profiling832258
-Ref: Profiling-Footnote-1840930
-Node: Advanced Features Summary841253
-Node: Internationalization843097
-Node: I18N and L10N844577
-Node: Explaining gettext845264
-Ref: Explaining gettext-Footnote-1851156
-Ref: Explaining gettext-Footnote-2851341
-Node: Programmer i18n851506
-Ref: Programmer i18n-Footnote-1856455
-Node: Translator i18n856504
-Node: String Extraction857298
-Ref: String Extraction-Footnote-1858430
-Node: Printf Ordering858516
-Ref: Printf Ordering-Footnote-1861302
-Node: I18N Portability861366
-Ref: I18N Portability-Footnote-1863822
-Node: I18N Example863885
-Ref: I18N Example-Footnote-1866691
-Node: Gawk I18N866764
-Node: I18N Summary867409
-Node: Debugger868750
-Node: Debugging869772
-Node: Debugging Concepts870213
-Node: Debugging Terms872022
-Node: Awk Debugging874597
-Node: Sample Debugging Session875503
-Node: Debugger Invocation876037
-Node: Finding The Bug877423
-Node: List of Debugger Commands883901
-Node: Breakpoint Control885234
-Node: Debugger Execution Control888928
-Node: Viewing And Changing Data892290
-Node: Execution Stack895664
-Node: Debugger Info897301
-Node: Miscellaneous Debugger Commands901372
-Node: Readline Support906460
-Node: Limitations907356
-Node: Debugging Summary909465
-Node: Arbitrary Precision Arithmetic910744
-Node: Computer Arithmetic912229
-Ref: table-numeric-ranges915820
-Ref: Computer Arithmetic-Footnote-1916542
-Node: Math Definitions916599
-Ref: table-ieee-formats919913
-Ref: Math Definitions-Footnote-1920516
-Node: MPFR features920621
-Node: FP Math Caution922338
-Ref: FP Math Caution-Footnote-1923410
-Node: Inexactness of computations923779
-Node: Inexact representation924739
-Node: Comparing FP Values926099
-Node: Errors accumulate927181
-Node: Getting Accuracy928614
-Node: Try To Round931324
-Node: Setting precision932223
-Ref: table-predefined-precision-strings932920
-Node: Setting the rounding mode934750
-Ref: table-gawk-rounding-modes935124
-Ref: Setting the rounding mode-Footnote-1938532
-Node: Arbitrary Precision Integers938711
-Ref: Arbitrary Precision Integers-Footnote-1943616
-Node: Checking for MPFR943765
-Node: POSIX Floating Point Problems945062
-Ref: POSIX Floating Point Problems-Footnote-1948933
-Node: Floating point summary948971
-Node: Dynamic Extensions951161
-Node: Extension Intro952714
-Node: Plugin License953980
-Node: Extension Mechanism Outline954777
-Ref: figure-load-extension955216
-Ref: figure-register-new-function956781
-Ref: figure-call-new-function957873
-Node: Extension API Description959935
-Node: Extension API Functions Introduction961577
-Node: General Data Types966911
-Ref: General Data Types-Footnote-1974116
-Node: Memory Allocation Functions974415
-Ref: Memory Allocation Functions-Footnote-1977260
-Node: Constructor Functions977359
-Node: Registration Functions980358
-Node: Extension Functions981043
-Node: Exit Callback Functions986256
-Node: Extension Version String987506
-Node: Input Parsers988169
-Node: Output Wrappers1000876
-Node: Two-way processors1005388
-Node: Printing Messages1007653
-Ref: Printing Messages-Footnote-11008824
-Node: Updating ERRNO1008977
-Node: Requesting Values1009716
-Ref: table-value-types-returned1010453
-Node: Accessing Parameters1011389
-Node: Symbol Table Access1012624
-Node: Symbol table by name1013136
-Node: Symbol table by cookie1014925
-Ref: Symbol table by cookie-Footnote-11019110
-Node: Cached values1019174
-Ref: Cached values-Footnote-11022710
-Node: Array Manipulation1022801
-Ref: Array Manipulation-Footnote-11023892
-Node: Array Data Types1023929
-Ref: Array Data Types-Footnote-11026587
-Node: Array Functions1026679
-Node: Flattening Arrays1031078
-Node: Creating Arrays1038019
-Node: Redirection API1042788
-Node: Extension API Variables1045630
-Node: Extension Versioning1046263
-Ref: gawk-api-version1046700
-Node: Extension API Informational Variables1048428
-Node: Extension API Boilerplate1049492
-Node: Changes from API V11053354
-Node: Finding Extensions1054014
-Node: Extension Example1054573
-Node: Internal File Description1055371
-Node: Internal File Ops1059451
-Ref: Internal File Ops-Footnote-11070851
-Node: Using Internal File Ops1070991
-Ref: Using Internal File Ops-Footnote-11073374
-Node: Extension Samples1073648
-Node: Extension Sample File Functions1075177
-Node: Extension Sample Fnmatch1082826
-Node: Extension Sample Fork1084313
-Node: Extension Sample Inplace1085531
-Node: Extension Sample Ord1088741
-Node: Extension Sample Readdir1089577
-Ref: table-readdir-file-types1090466
-Node: Extension Sample Revout1091271
-Node: Extension Sample Rev2way1091860
-Node: Extension Sample Read write array1092600
-Node: Extension Sample Readfile1094542
-Node: Extension Sample Time1095637
-Node: Extension Sample API Tests1096985
-Node: gawkextlib1097477
-Node: Extension summary1099924
-Node: Extension Exercises1103626
-Node: Language History1105124
-Node: V7/SVR3.11106780
-Node: SVR41108932
-Node: POSIX1110366
-Node: BTL1111745
-Node: POSIX/GNU1112474
-Node: Feature History1118366
-Node: Common Extensions1132790
-Node: Ranges and Locales1134073
-Ref: Ranges and Locales-Footnote-11138689
-Ref: Ranges and Locales-Footnote-21138716
-Ref: Ranges and Locales-Footnote-31138951
-Node: Contributors1139172
-Node: History summary1144732
-Node: Installation1146112
-Node: Gawk Distribution1147056
-Node: Getting1147540
-Node: Extracting1148501
-Node: Distribution contents1150139
-Node: Unix Installation1156481
-Node: Quick Installation1157163
-Node: Shell Startup Files1159577
-Node: Additional Configuration Options1160666
-Node: Configuration Philosophy1162655
-Node: Non-Unix Installation1165024
-Node: PC Installation1165484
-Node: PC Binary Installation1166322
-Node: PC Compiling1166757
-Node: PC Using1167874
-Node: Cygwin1170919
-Node: MSYS1171689
-Node: VMS Installation1172190
-Node: VMS Compilation1172981
-Ref: VMS Compilation-Footnote-11174210
-Node: VMS Dynamic Extensions1174268
-Node: VMS Installation Details1175953
-Node: VMS Running1178206
-Node: VMS GNV1182485
-Node: VMS Old Gawk1183220
-Node: Bugs1183691
-Node: Bug address1184354
-Node: Usenet1186751
-Node: Maintainers1187528
-Node: Other Versions1188904
-Node: Installation summary1195488
-Node: Notes1196523
-Node: Compatibility Mode1197388
-Node: Additions1198170
-Node: Accessing The Source1199095
-Node: Adding Code1200530
-Node: New Ports1206748
-Node: Derived Files1211236
-Ref: Derived Files-Footnote-11216721
-Ref: Derived Files-Footnote-21216756
-Ref: Derived Files-Footnote-31217354
-Node: Future Extensions1217468
-Node: Implementation Limitations1218126
-Node: Extension Design1219309
-Node: Old Extension Problems1220463
-Ref: Old Extension Problems-Footnote-11221981
-Node: Extension New Mechanism Goals1222038
-Ref: Extension New Mechanism Goals-Footnote-11225402
-Node: Extension Other Design Decisions1225591
-Node: Extension Future Growth1227704
-Node: Old Extension Mechanism1228540
-Node: Notes summary1230303
-Node: Basic Concepts1231485
-Node: Basic High Level1232166
-Ref: figure-general-flow1232448
-Ref: figure-process-flow1233133
-Ref: Basic High Level-Footnote-11236434
-Node: Basic Data Typing1236619
-Node: Glossary1239947
-Node: Copying1271894
-Node: GNU Free Documentation License1309433
-Node: Index1334551
+Node: Running Examples705533
+Node: Clones706261
+Node: Cut Program707485
+Node: Egrep Program717414
+Ref: Egrep Program-Footnote-1724926
+Node: Id Program725036
+Node: Split Program728716
+Ref: Split Program-Footnote-1732175
+Node: Tee Program732304
+Node: Uniq Program735094
+Node: Wc Program742520
+Ref: Wc Program-Footnote-1746775
+Node: Miscellaneous Programs746869
+Node: Dupword Program748082
+Node: Alarm Program750112
+Node: Translate Program754967
+Ref: Translate Program-Footnote-1759532
+Node: Labels Program759802
+Ref: Labels Program-Footnote-1763153
+Node: Word Sorting763237
+Node: History Sorting767309
+Node: Extract Program769144
+Node: Simple Sed776673
+Node: Igawk Program779747
+Ref: Igawk Program-Footnote-1794078
+Ref: Igawk Program-Footnote-2794280
+Ref: Igawk Program-Footnote-3794402
+Node: Anagram Program794517
+Node: Signature Program797579
+Node: Programs Summary798826
+Node: Programs Exercises800040
+Ref: Programs Exercises-Footnote-1804169
+Node: Namespaces804260
+Node: Global Namespace804481
+Node: Qualified Names805721
+Node: Default Namespace806402
+Node: Changing The Namespace807099
+Node: Namespace Example808203
+Node: Namespace Misc810262
+Node: Advanced Features811040
+Node: Nondecimal Data813025
+Node: Array Sorting814616
+Node: Controlling Array Traversal815316
+Ref: Controlling Array Traversal-Footnote-1823683
+Node: Array Sorting Functions823801
+Ref: Array Sorting Functions-Footnote-1828892
+Node: Two-way I/O829088
+Ref: Two-way I/O-Footnote-1835639
+Ref: Two-way I/O-Footnote-2835826
+Node: TCP/IP Networking835908
+Node: Profiling839026
+Ref: Profiling-Footnote-1847698
+Node: Advanced Features Summary848021
+Node: Internationalization849865
+Node: I18N and L10N851345
+Node: Explaining gettext852032
+Ref: Explaining gettext-Footnote-1857924
+Ref: Explaining gettext-Footnote-2858109
+Node: Programmer i18n858274
+Ref: Programmer i18n-Footnote-1863223
+Node: Translator i18n863272
+Node: String Extraction864066
+Ref: String Extraction-Footnote-1865198
+Node: Printf Ordering865284
+Ref: Printf Ordering-Footnote-1868070
+Node: I18N Portability868134
+Ref: I18N Portability-Footnote-1870590
+Node: I18N Example870653
+Ref: I18N Example-Footnote-1873459
+Node: Gawk I18N873532
+Node: I18N Summary874177
+Node: Debugger875518
+Node: Debugging876540
+Node: Debugging Concepts876981
+Node: Debugging Terms878790
+Node: Awk Debugging881365
+Node: Sample Debugging Session882271
+Node: Debugger Invocation882805
+Node: Finding The Bug884191
+Node: List of Debugger Commands890669
+Node: Breakpoint Control892002
+Node: Debugger Execution Control895696
+Node: Viewing And Changing Data899058
+Node: Execution Stack902432
+Node: Debugger Info904069
+Node: Miscellaneous Debugger Commands908140
+Node: Readline Support913228
+Node: Limitations914124
+Node: Debugging Summary916233
+Node: Arbitrary Precision Arithmetic917512
+Node: Computer Arithmetic918997
+Ref: table-numeric-ranges922588
+Ref: Computer Arithmetic-Footnote-1923310
+Node: Math Definitions923367
+Ref: table-ieee-formats926681
+Ref: Math Definitions-Footnote-1927284
+Node: MPFR features927389
+Node: FP Math Caution929106
+Ref: FP Math Caution-Footnote-1930178
+Node: Inexactness of computations930547
+Node: Inexact representation931507
+Node: Comparing FP Values932867
+Node: Errors accumulate933949
+Node: Getting Accuracy935382
+Node: Try To Round938092
+Node: Setting precision938991
+Ref: table-predefined-precision-strings939688
+Node: Setting the rounding mode941518
+Ref: table-gawk-rounding-modes941892
+Ref: Setting the rounding mode-Footnote-1945300
+Node: Arbitrary Precision Integers945479
+Ref: Arbitrary Precision Integers-Footnote-1950384
+Node: Checking for MPFR950533
+Node: POSIX Floating Point Problems951830
+Ref: POSIX Floating Point Problems-Footnote-1955701
+Node: Floating point summary955739
+Node: Dynamic Extensions957929
+Node: Extension Intro959482
+Node: Plugin License960748
+Node: Extension Mechanism Outline961545
+Ref: figure-load-extension961984
+Ref: figure-register-new-function963549
+Ref: figure-call-new-function964641
+Node: Extension API Description966703
+Node: Extension API Functions Introduction968345
+Node: General Data Types973679
+Ref: General Data Types-Footnote-1980884
+Node: Memory Allocation Functions981183
+Ref: Memory Allocation Functions-Footnote-1984028
+Node: Constructor Functions984127
+Node: Registration Functions987126
+Node: Extension Functions987811
+Node: Exit Callback Functions993024
+Node: Extension Version String994274
+Node: Input Parsers994937
+Node: Output Wrappers1007644
+Node: Two-way processors1012156
+Node: Printing Messages1014421
+Ref: Printing Messages-Footnote-11015592
+Node: Updating ERRNO1015745
+Node: Requesting Values1016484
+Ref: table-value-types-returned1017221
+Node: Accessing Parameters1018157
+Node: Symbol Table Access1019392
+Node: Symbol table by name1019904
+Node: Symbol table by cookie1021693
+Ref: Symbol table by cookie-Footnote-11025878
+Node: Cached values1025942
+Ref: Cached values-Footnote-11029478
+Node: Array Manipulation1029569
+Ref: Array Manipulation-Footnote-11030660
+Node: Array Data Types1030697
+Ref: Array Data Types-Footnote-11033355
+Node: Array Functions1033447
+Node: Flattening Arrays1037846
+Node: Creating Arrays1044787
+Node: Redirection API1049556
+Node: Extension API Variables1052398
+Node: Extension Versioning1053031
+Ref: gawk-api-version1053468
+Node: Extension API Informational Variables1055196
+Node: Extension API Boilerplate1056260
+Node: Changes from API V11060122
+Node: Finding Extensions1060782
+Node: Extension Example1061341
+Node: Internal File Description1062139
+Node: Internal File Ops1066219
+Ref: Internal File Ops-Footnote-11077619
+Node: Using Internal File Ops1077759
+Ref: Using Internal File Ops-Footnote-11080142
+Node: Extension Samples1080416
+Node: Extension Sample File Functions1081945
+Node: Extension Sample Fnmatch1089594
+Node: Extension Sample Fork1091081
+Node: Extension Sample Inplace1092299
+Node: Extension Sample Ord1095509
+Node: Extension Sample Readdir1096345
+Ref: table-readdir-file-types1097234
+Node: Extension Sample Revout1098039
+Node: Extension Sample Rev2way1098628
+Node: Extension Sample Read write array1099368
+Node: Extension Sample Readfile1101310
+Node: Extension Sample Time1102405
+Node: Extension Sample API Tests1103753
+Node: gawkextlib1104245
+Node: Extension summary1106692
+Node: Extension Exercises1110394
+Node: Language History1111892
+Node: V7/SVR3.11113548
+Node: SVR41115700
+Node: POSIX1117134
+Node: BTL1118513
+Node: POSIX/GNU1119242
+Node: Feature History1125134
+Node: Common Extensions1139558
+Node: Ranges and Locales1140841
+Ref: Ranges and Locales-Footnote-11145457
+Ref: Ranges and Locales-Footnote-21145484
+Ref: Ranges and Locales-Footnote-31145719
+Node: Contributors1145940
+Node: History summary1151500
+Node: Installation1152880
+Node: Gawk Distribution1153824
+Node: Getting1154308
+Node: Extracting1155269
+Node: Distribution contents1156907
+Node: Unix Installation1163249
+Node: Quick Installation1163931
+Node: Shell Startup Files1166345
+Node: Additional Configuration Options1167434
+Node: Configuration Philosophy1169423
+Node: Non-Unix Installation1171792
+Node: PC Installation1172252
+Node: PC Binary Installation1173090
+Node: PC Compiling1173525
+Node: PC Using1174642
+Node: Cygwin1177687
+Node: MSYS1178457
+Node: VMS Installation1178958
+Node: VMS Compilation1179749
+Ref: VMS Compilation-Footnote-11180978
+Node: VMS Dynamic Extensions1181036
+Node: VMS Installation Details1182721
+Node: VMS Running1184974
+Node: VMS GNV1189253
+Node: VMS Old Gawk1189988
+Node: Bugs1190459
+Node: Bug address1191122
+Node: Usenet1193519
+Node: Maintainers1194296
+Node: Other Versions1195672
+Node: Installation summary1202256
+Node: Notes1203291
+Node: Compatibility Mode1204156
+Node: Additions1204938
+Node: Accessing The Source1205863
+Node: Adding Code1207298
+Node: New Ports1213516
+Node: Derived Files1218004
+Ref: Derived Files-Footnote-11223489
+Ref: Derived Files-Footnote-21223524
+Ref: Derived Files-Footnote-31224122
+Node: Future Extensions1224236
+Node: Implementation Limitations1224894
+Node: Extension Design1226077
+Node: Old Extension Problems1227231
+Ref: Old Extension Problems-Footnote-11228749
+Node: Extension New Mechanism Goals1228806
+Ref: Extension New Mechanism Goals-Footnote-11232170
+Node: Extension Other Design Decisions1232359
+Node: Extension Future Growth1234472
+Node: Old Extension Mechanism1235308
+Node: Notes summary1237071
+Node: Basic Concepts1238253
+Node: Basic High Level1238934
+Ref: figure-general-flow1239216
+Ref: figure-process-flow1239901
+Ref: Basic High Level-Footnote-11243202
+Node: Basic Data Typing1243387
+Node: Glossary1246715
+Node: Copying1278662
+Node: GNU Free Documentation License1316201
+Node: Index1341319
 
 End Tag Table
