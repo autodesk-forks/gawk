@@ -26762,11 +26762,11 @@ function Init(    oldfs, oldrs, olddol0, pwcat, using_fw, using_fpat)
     FS = ":"
     RS = "\n"
 
-    pwcat = _pw_awklib "pwcat"
+    pwcat = Awklib "pwcat"
     while ((pwcat | getline) > 0) @{
         Byname[$1] = $0
         Byuid[$3] = $0
-        Bycount[++_pw_total] = $0
+        Bycount[++Total] = $0
     @}
     close(pwcat)
     Count = 0
@@ -26874,6 +26874,10 @@ function bar() @{ @dots{}  @}
 This is particularly true if @code{x} is passed as a ``function pointer''
 to another function in another namespace for that function to call
 through it.
+
+For backwards compatibility, if @code{x} contains an unadorned
+identifier, @command{gawk} forces it to be in the @samp{awk}
+namespace.
 
 @item How does this affect @code{@@include}?
 Basically @code{@@include} should push and pop the namespace. Each @code{@@include}

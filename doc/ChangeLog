@@ -1,3 +1,8 @@
+2017-06-02         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* gawktexi.in (Namespaces): Fixes in passwd.awk example. Document
+	that indirect calls with an unadorned name assume "awk" namespace.
+
 2017-05-30         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* gawktexi.in: Initial doc on namespaces. Serves as a design
