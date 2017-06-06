@@ -3,7 +3,7 @@
 	* gawktexi.in (Namespaces): Further clarifications. Move to
 	`::' as the namespace separator.
 
-2017-06-05         Arnold D. Robbins     <arnold@skeeve.com>
+2017-06-05         Andrew J. Schorr     <aschorr@telemetry-investments.com>
 
 	* gawktexi.in (Checking for MPFR): Fix typo.
 
