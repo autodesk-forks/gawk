@@ -19753,6 +19753,7 @@ This major node describes a feature that is specific to 'gawk'.
 * Qualified Names::             How to qualify names with a namespace.
 * Default Namespace::           The default namespace.
 * Changing The Namespace::      How to change the namespace.
+* Internal Name Management::    How names are stored internally.
 * Namespace Example::           An example of code using a namespace.
 * Namespace Misc::              Namespace notes for developers.
 
@@ -19763,9 +19764,9 @@ File: gawk.info,  Node: Global Namespace,  Next: Qualified Names,  Up: Namespace
 ======================================
 
 In standard 'awk', there is a single, global, "namespace".  This means
-that _all_ function names and global variable names must be unique.  Two
-different 'awk' source files cannot both define a function named
-'sort()', for example.
+that _all_ function names and global variable names must be unique.  For
+example, two different 'awk' source files cannot both define a function
+named 'min()'.
 
    This situation is okay when programs are small, say a few hundred
 lines, or even a few thousand, but it prevents the development of
@@ -19775,7 +19776,7 @@ other's "private" global variables (*note Library Names::).
 
    Most other programming languages solve this issue by providing some
 kind of namespace control: a way to say "this function is in namespace
-X, and that function is in namespace Y."  (Of course, there is then
+XXX, and that function is in namespace YYY."  (Of course, there is then
 still a single namespace for the namespaces, but the hope is that there
 are much fewer namespaces in use by any given program, and thus much
 less chance for collisions.)
@@ -19789,15 +19790,21 @@ File: gawk.info,  Node: Qualified Names,  Next: Default Namespace,  Prev: Global
 12.2 Qualified Names
 ====================
 
-A "qualified name" is an identifier that includes a namespace name.  For
-example, one might have a function named 'posix.getpid()'.  Here, the
-namespace is 'posix' and the function name within the namespace is
-'getpid()'.  The namespace and variable or function name are separated
-by a period.  Only one period is allowed in a qualified name.
+A "qualified name" is an identifier that includes a namespace name and
+the namespace separator, '::'.  For example, one might have a function
+named 'posix::getpid()'.  Here, the namespace is 'posix' and the
+function name within the namespace is 'getpid()'.  The namespace and
+variable or function name are separated by a double-colon.  Only one
+such separator is allowed in a qualified name.
+
+     NOTE: Unlike C++, the '::' is _not_ an operator.  No spaces are
+     allowed between the namespace name, the '::', and the rest of the
+     name.
 
    You must use fully qualified names from one namespace to access
-variables in another.  This is especially important when using variable
-names to index the special 'SYMTAB' array.
+variables and functions in another.  This is especially important when
+using variable names to index the special 'SYMTAB' array, and when
+making indirect function calls.  *FIXME:* and xref.
 
 
 File: gawk.info,  Node: Default Namespace,  Next: Changing The Namespace,  Prev: Qualified Names,  Up: Namespaces
@@ -19807,7 +19814,7 @@ File: gawk.info,  Node: Default Namespace,  Next: Changing The Namespace,  Prev:
 
 The default namespace, not surprisingly, is 'awk'.  All of the
 predefined 'awk' and 'gawk' variables are in this namespace, and thus
-have qualified names like 'awk.ARGC', 'awk.NF', and so on.
+have qualified names like 'awk::ARGC', 'awk::NF', and so on.
 
    Furthermore, even when you have changed the namespace for your
 current source file (*note Changing The Namespace::), 'gawk' forces
@@ -19815,11 +19822,11 @@ unqualified identifiers whose names are all uppercase letters to be in
 the 'awk' namespace.  This makes it possible for you to easily reference
 'gawk''s global variables from different namespaces.
 
-   It is a syntactic error to use qualified names for function parameter
+   It is a syntax error to use qualified names for function parameter
 names.
 
 
-File: gawk.info,  Node: Changing The Namespace,  Next: Namespace Example,  Prev: Default Namespace,  Up: Namespaces
+File: gawk.info,  Node: Changing The Namespace,  Next: Internal Name Management,  Prev: Default Namespace,  Up: Namespaces
 
 12.4 Changing The Namespace
 ===========================
@@ -19832,18 +19839,18 @@ the top level of your program:
      BEGIN { ... }
      ...
 
-   After this directive, all simple non-uppercase identifiers are placed
-into the 'passwd' namespace.
+   After this directive, all simple non-completely-uppercase identifiers
+are placed into the 'passwd' namespace.
 
    You can change the namespace multiple times within a single source
-file, although this is likely to become confusing if you do it a lot.
+file, although this is likely to become confusing if you do it too much.
 
      NOTE: The namespace concept is one handled while your program is
      being parsed by 'gawk'.  There is no concept of a "current"
      namespace during runtime.  Be sure you understand the distinction.
 
-   Each source file for '-i' and '-f' starts out with an implicit
-'@namespace "awk"'.
+   Each source file for '-i' and '-f' (FIXME: pxref) starts out with an
+implicit '@namespace "awk"'.
 
    Similarly, each chunk of command-line code with '-e' has such an
 implicit statement.
@@ -19852,9 +19859,39 @@ implicit statement.
 of 'BEGIN', 'BEGINFILE', 'END', and 'ENDFILE' rules.
 
 
-File: gawk.info,  Node: Namespace Example,  Next: Namespace Misc,  Prev: Changing The Namespace,  Up: Namespaces
+File: gawk.info,  Node: Internal Name Management,  Next: Namespace Example,  Prev: Changing The Namespace,  Up: Namespaces
 
-12.5 Namespace Example
+12.5 Internal Name Management
+=============================
+
+For backwards compatibility, all identifiers in the 'awk' namespace are
+stored internally as unadorned identifiers.  This is mainly relevant
+when using such identifiers as indices for 'SYMTAB', 'FUNCTAB', and
+'PROCINFO["identifiers"]' (FIXME: xref), and for use in indirect
+function calls (FIXME: xref).
+
+   In program code, to refer to variables and functions in the 'awk'
+namespace from another namespace, you must still use the 'awk::' prefix.
+For example:
+
+     @namespace "awk"          # the default
+
+     BEGIN {
+         Title = "My Report"   # fully qualified name is awk::Title
+     }
+
+     @namespace "report"       # now in "report" namespace
+
+     function compute()	  # this is really report::compute()
+     {
+         print awk::Title      # but would be SYMTAB["Title"]
+         ...
+     }
+
+
+File: gawk.info,  Node: Namespace Example,  Next: Namespace Misc,  Prev: Internal Name Management,  Up: Namespaces
+
+12.6 Namespace Example
 ======================
 
      # FIXME: fix this up for real, dates etc
@@ -19937,69 +19974,45 @@ File: gawk.info,  Node: Namespace Example,  Next: Namespace Misc,  Prev: Changin
 
      function getpwnam(name)
      {
-         return passwd.Getpwnam(name)
+         return passwd::Getpwnam(name)
      }
 
      function getpwuid(uid)
      {
-         return passwd.Getpwuid(uid)
+         return passwd::Getpwuid(uid)
      }
 
      function getpwent()
      {
-         return passwd.Getpwent()
+         return passwd::Getpwent()
      }
 
      function endpwent()
      {
-         passwd.Endpwent()
+         passwd::Endpwent()
      }
 
 
 File: gawk.info,  Node: Namespace Misc,  Prev: Namespace Example,  Up: Namespaces
 
-12.6 Miscellaneous Notes
+12.7 Miscellaneous Notes
 ========================
 
 Other notes for reviewers:
 
-'SYMTAB', 'FUNCTAB' and 'PROCINFO["identifiers"]'
-     The subscripts are all fully qualified names.
-
 Profiler:
      When profiling, we can add an 'Op_Namespace' to the start of each
-     rule.  If it has changed since the previous one, output an
-     '@namespace' statement.  For each identifier, if it starts with the
-     current namespace, output only the simple part.  For all 'awk.XXX'
-     if 'XXX' is all uppercase, strip off the 'awk' part.
+     rule and function definition.  If this is different than the
+     previous one, output an '@namespace' statement.  For each
+     identifier, if it starts with the current namespace, output only
+     the simple part.  For all 'awk::XXX' if 'XXX' is all uppercase,
+     strip off the 'awk::' part.
 
 Debugger:
      Simply print fully qualified names all the time.  Maybe allow a
      'namespace XXX' command in the debugger to set the namespace and it
      will use that to create fully qualified names?  Have to be careful
      about all uppercase names though.
-
-How does this affect indirect calls?
-     The current namespace is a parse time thing, not a dynamic thing,
-     so for indirect calls to work, use something like:
-
-          @namespace "foo"
-
-          function bar() { ...  }
-
-          {
-              ...
-              x = "foo.bar"
-              ...
-              @x()
-          }
-
-     This is particularly true if 'x' is passed as a "function pointer"
-     to another function in another namespace for that function to call
-     through it.
-
-     For backwards compatibility, if 'x' contains an unadorned
-     identifier, 'gawk' forces it to be in the 'awk' namespace.
 
 How does this affect '@include'?
      Basically '@include' should push and pop the namespace.  Each
@@ -20012,6 +20025,12 @@ Extension functions
      the namespace of the extension.  This preserves backwards
      compatibility at the source level while providing access to
      namespaces as needed.
+
+     Actually, since we've decided that 'awk' namespace variables and
+     function are stored unadorned, the current macros that pass '""'
+     would continue to work.  Internally, we need to recognize '"awk"'
+     and _not_ fully qualify the name before storing it in the symbol
+     table.
 
 
 File: gawk.info,  Node: Advanced Features,  Next: Internationalization,  Prev: Namespaces,  Up: Top
@@ -23563,7 +23582,7 @@ File: gawk.info,  Node: Checking for MPFR,  Next: POSIX Floating Point Problems,
 ======================================
 
 Occasionally, you might like to be able to check if 'gawk' was invoked
-with the '-M' option, enabling aribtrary-precision arithmetic.  You can
+with the '-M' option, enabling arbitrary-precision arithmetic.  You can
 do so with the following function, contributed by Andrew Schorr:
 
      # adequate_math_precision --- return true if we have enough bits
@@ -36376,235 +36395,236 @@ Node: Programs Summary799357
 Node: Programs Exercises800571
 Ref: Programs Exercises-Footnote-1804700
 Node: Namespaces804791
-Node: Global Namespace805406
-Node: Qualified Names806646
-Node: Default Namespace807327
-Node: Changing The Namespace808105
-Node: Namespace Example809194
-Node: Namespace Misc811257
-Node: Advanced Features813299
-Node: Nondecimal Data815284
-Node: Array Sorting816875
-Node: Controlling Array Traversal817575
-Ref: Controlling Array Traversal-Footnote-1825942
-Node: Array Sorting Functions826060
-Ref: Array Sorting Functions-Footnote-1831151
-Node: Two-way I/O831347
-Ref: Two-way I/O-Footnote-1837898
-Ref: Two-way I/O-Footnote-2838085
-Node: TCP/IP Networking838167
-Node: Profiling841285
-Ref: Profiling-Footnote-1849957
-Node: Advanced Features Summary850280
-Node: Internationalization852124
-Node: I18N and L10N853604
-Node: Explaining gettext854291
-Ref: Explaining gettext-Footnote-1860183
-Ref: Explaining gettext-Footnote-2860368
-Node: Programmer i18n860533
-Ref: Programmer i18n-Footnote-1865482
-Node: Translator i18n865531
-Node: String Extraction866325
-Ref: String Extraction-Footnote-1867457
-Node: Printf Ordering867543
-Ref: Printf Ordering-Footnote-1870329
-Node: I18N Portability870393
-Ref: I18N Portability-Footnote-1872849
-Node: I18N Example872912
-Ref: I18N Example-Footnote-1875718
-Node: Gawk I18N875791
-Node: I18N Summary876436
-Node: Debugger877777
-Node: Debugging878799
-Node: Debugging Concepts879240
-Node: Debugging Terms881049
-Node: Awk Debugging883624
-Node: Sample Debugging Session884530
-Node: Debugger Invocation885064
-Node: Finding The Bug886450
-Node: List of Debugger Commands892928
-Node: Breakpoint Control894261
-Node: Debugger Execution Control897955
-Node: Viewing And Changing Data901317
-Node: Execution Stack904691
-Node: Debugger Info906328
-Node: Miscellaneous Debugger Commands910399
-Node: Readline Support915487
-Node: Limitations916383
-Node: Debugging Summary918492
-Node: Arbitrary Precision Arithmetic919771
-Node: Computer Arithmetic921256
-Ref: table-numeric-ranges924847
-Ref: Computer Arithmetic-Footnote-1925569
-Node: Math Definitions925626
-Ref: table-ieee-formats928940
-Ref: Math Definitions-Footnote-1929543
-Node: MPFR features929648
-Node: FP Math Caution931365
-Ref: FP Math Caution-Footnote-1932437
-Node: Inexactness of computations932806
-Node: Inexact representation933766
-Node: Comparing FP Values935126
-Node: Errors accumulate936208
-Node: Getting Accuracy937641
-Node: Try To Round940351
-Node: Setting precision941250
-Ref: table-predefined-precision-strings941947
-Node: Setting the rounding mode943777
-Ref: table-gawk-rounding-modes944151
-Ref: Setting the rounding mode-Footnote-1947559
-Node: Arbitrary Precision Integers947738
-Ref: Arbitrary Precision Integers-Footnote-1952643
-Node: Checking for MPFR952792
-Node: POSIX Floating Point Problems954089
-Ref: POSIX Floating Point Problems-Footnote-1957960
-Node: Floating point summary957998
-Node: Dynamic Extensions960188
-Node: Extension Intro961741
-Node: Plugin License963007
-Node: Extension Mechanism Outline963804
-Ref: figure-load-extension964243
-Ref: figure-register-new-function965808
-Ref: figure-call-new-function966900
-Node: Extension API Description968962
-Node: Extension API Functions Introduction970604
-Node: General Data Types975938
-Ref: General Data Types-Footnote-1983143
-Node: Memory Allocation Functions983442
-Ref: Memory Allocation Functions-Footnote-1986287
-Node: Constructor Functions986386
-Node: Registration Functions989385
-Node: Extension Functions990070
-Node: Exit Callback Functions995283
-Node: Extension Version String996533
-Node: Input Parsers997196
-Node: Output Wrappers1009903
-Node: Two-way processors1014415
-Node: Printing Messages1016680
-Ref: Printing Messages-Footnote-11017851
-Node: Updating ERRNO1018004
-Node: Requesting Values1018743
-Ref: table-value-types-returned1019480
-Node: Accessing Parameters1020416
-Node: Symbol Table Access1021651
-Node: Symbol table by name1022163
-Node: Symbol table by cookie1023952
-Ref: Symbol table by cookie-Footnote-11028137
-Node: Cached values1028201
-Ref: Cached values-Footnote-11031737
-Node: Array Manipulation1031828
-Ref: Array Manipulation-Footnote-11032919
-Node: Array Data Types1032956
-Ref: Array Data Types-Footnote-11035614
-Node: Array Functions1035706
-Node: Flattening Arrays1040105
-Node: Creating Arrays1047046
-Node: Redirection API1051815
-Node: Extension API Variables1054657
-Node: Extension Versioning1055290
-Ref: gawk-api-version1055727
-Node: Extension API Informational Variables1057455
-Node: Extension API Boilerplate1058519
-Node: Changes from API V11062381
-Node: Finding Extensions1063041
-Node: Extension Example1063600
-Node: Internal File Description1064398
-Node: Internal File Ops1068478
-Ref: Internal File Ops-Footnote-11079878
-Node: Using Internal File Ops1080018
-Ref: Using Internal File Ops-Footnote-11082401
-Node: Extension Samples1082675
-Node: Extension Sample File Functions1084204
-Node: Extension Sample Fnmatch1091853
-Node: Extension Sample Fork1093340
-Node: Extension Sample Inplace1094558
-Node: Extension Sample Ord1097768
-Node: Extension Sample Readdir1098604
-Ref: table-readdir-file-types1099493
-Node: Extension Sample Revout1100298
-Node: Extension Sample Rev2way1100887
-Node: Extension Sample Read write array1101627
-Node: Extension Sample Readfile1103569
-Node: Extension Sample Time1104664
-Node: Extension Sample API Tests1106012
-Node: gawkextlib1106504
-Node: Extension summary1108951
-Node: Extension Exercises1112653
-Node: Language History1114151
-Node: V7/SVR3.11115807
-Node: SVR41117959
-Node: POSIX1119393
-Node: BTL1120772
-Node: POSIX/GNU1121501
-Node: Feature History1127393
-Node: Common Extensions1141817
-Node: Ranges and Locales1143100
-Ref: Ranges and Locales-Footnote-11147716
-Ref: Ranges and Locales-Footnote-21147743
-Ref: Ranges and Locales-Footnote-31147978
-Node: Contributors1148199
-Node: History summary1153759
-Node: Installation1155139
-Node: Gawk Distribution1156083
-Node: Getting1156567
-Node: Extracting1157528
-Node: Distribution contents1159166
-Node: Unix Installation1165508
-Node: Quick Installation1166190
-Node: Shell Startup Files1168604
-Node: Additional Configuration Options1169693
-Node: Configuration Philosophy1171682
-Node: Non-Unix Installation1174051
-Node: PC Installation1174511
-Node: PC Binary Installation1175349
-Node: PC Compiling1175784
-Node: PC Using1176901
-Node: Cygwin1179946
-Node: MSYS1180716
-Node: VMS Installation1181217
-Node: VMS Compilation1182008
-Ref: VMS Compilation-Footnote-11183237
-Node: VMS Dynamic Extensions1183295
-Node: VMS Installation Details1184980
-Node: VMS Running1187233
-Node: VMS GNV1191512
-Node: VMS Old Gawk1192247
-Node: Bugs1192718
-Node: Bug address1193381
-Node: Usenet1195778
-Node: Maintainers1196555
-Node: Other Versions1197931
-Node: Installation summary1204515
-Node: Notes1205550
-Node: Compatibility Mode1206415
-Node: Additions1207197
-Node: Accessing The Source1208122
-Node: Adding Code1209557
-Node: New Ports1215775
-Node: Derived Files1220263
-Ref: Derived Files-Footnote-11225748
-Ref: Derived Files-Footnote-21225783
-Ref: Derived Files-Footnote-31226381
-Node: Future Extensions1226495
-Node: Implementation Limitations1227153
-Node: Extension Design1228336
-Node: Old Extension Problems1229490
-Ref: Old Extension Problems-Footnote-11231008
-Node: Extension New Mechanism Goals1231065
-Ref: Extension New Mechanism Goals-Footnote-11234429
-Node: Extension Other Design Decisions1234618
-Node: Extension Future Growth1236731
-Node: Old Extension Mechanism1237567
-Node: Notes summary1239330
-Node: Basic Concepts1240512
-Node: Basic High Level1241193
-Ref: figure-general-flow1241475
-Ref: figure-process-flow1242160
-Ref: Basic High Level-Footnote-11245461
-Node: Basic Data Typing1245646
-Node: Glossary1248974
-Node: Copying1280921
-Node: GNU Free Documentation License1318460
-Node: Index1343578
+Node: Global Namespace805471
+Node: Qualified Names806714
+Node: Default Namespace807671
+Node: Changing The Namespace808448
+Node: Internal Name Management809573
+Node: Namespace Example810567
+Node: Namespace Misc812636
+Node: Advanced Features814278
+Node: Nondecimal Data816263
+Node: Array Sorting817854
+Node: Controlling Array Traversal818554
+Ref: Controlling Array Traversal-Footnote-1826921
+Node: Array Sorting Functions827039
+Ref: Array Sorting Functions-Footnote-1832130
+Node: Two-way I/O832326
+Ref: Two-way I/O-Footnote-1838877
+Ref: Two-way I/O-Footnote-2839064
+Node: TCP/IP Networking839146
+Node: Profiling842264
+Ref: Profiling-Footnote-1850936
+Node: Advanced Features Summary851259
+Node: Internationalization853103
+Node: I18N and L10N854583
+Node: Explaining gettext855270
+Ref: Explaining gettext-Footnote-1861162
+Ref: Explaining gettext-Footnote-2861347
+Node: Programmer i18n861512
+Ref: Programmer i18n-Footnote-1866461
+Node: Translator i18n866510
+Node: String Extraction867304
+Ref: String Extraction-Footnote-1868436
+Node: Printf Ordering868522
+Ref: Printf Ordering-Footnote-1871308
+Node: I18N Portability871372
+Ref: I18N Portability-Footnote-1873828
+Node: I18N Example873891
+Ref: I18N Example-Footnote-1876697
+Node: Gawk I18N876770
+Node: I18N Summary877415
+Node: Debugger878756
+Node: Debugging879778
+Node: Debugging Concepts880219
+Node: Debugging Terms882028
+Node: Awk Debugging884603
+Node: Sample Debugging Session885509
+Node: Debugger Invocation886043
+Node: Finding The Bug887429
+Node: List of Debugger Commands893907
+Node: Breakpoint Control895240
+Node: Debugger Execution Control898934
+Node: Viewing And Changing Data902296
+Node: Execution Stack905670
+Node: Debugger Info907307
+Node: Miscellaneous Debugger Commands911378
+Node: Readline Support916466
+Node: Limitations917362
+Node: Debugging Summary919471
+Node: Arbitrary Precision Arithmetic920750
+Node: Computer Arithmetic922235
+Ref: table-numeric-ranges925826
+Ref: Computer Arithmetic-Footnote-1926548
+Node: Math Definitions926605
+Ref: table-ieee-formats929919
+Ref: Math Definitions-Footnote-1930522
+Node: MPFR features930627
+Node: FP Math Caution932344
+Ref: FP Math Caution-Footnote-1933416
+Node: Inexactness of computations933785
+Node: Inexact representation934745
+Node: Comparing FP Values936105
+Node: Errors accumulate937187
+Node: Getting Accuracy938620
+Node: Try To Round941330
+Node: Setting precision942229
+Ref: table-predefined-precision-strings942926
+Node: Setting the rounding mode944756
+Ref: table-gawk-rounding-modes945130
+Ref: Setting the rounding mode-Footnote-1948538
+Node: Arbitrary Precision Integers948717
+Ref: Arbitrary Precision Integers-Footnote-1953622
+Node: Checking for MPFR953771
+Node: POSIX Floating Point Problems955068
+Ref: POSIX Floating Point Problems-Footnote-1958939
+Node: Floating point summary958977
+Node: Dynamic Extensions961167
+Node: Extension Intro962720
+Node: Plugin License963986
+Node: Extension Mechanism Outline964783
+Ref: figure-load-extension965222
+Ref: figure-register-new-function966787
+Ref: figure-call-new-function967879
+Node: Extension API Description969941
+Node: Extension API Functions Introduction971583
+Node: General Data Types976917
+Ref: General Data Types-Footnote-1984122
+Node: Memory Allocation Functions984421
+Ref: Memory Allocation Functions-Footnote-1987266
+Node: Constructor Functions987365
+Node: Registration Functions990364
+Node: Extension Functions991049
+Node: Exit Callback Functions996262
+Node: Extension Version String997512
+Node: Input Parsers998175
+Node: Output Wrappers1010882
+Node: Two-way processors1015394
+Node: Printing Messages1017659
+Ref: Printing Messages-Footnote-11018830
+Node: Updating ERRNO1018983
+Node: Requesting Values1019722
+Ref: table-value-types-returned1020459
+Node: Accessing Parameters1021395
+Node: Symbol Table Access1022630
+Node: Symbol table by name1023142
+Node: Symbol table by cookie1024931
+Ref: Symbol table by cookie-Footnote-11029116
+Node: Cached values1029180
+Ref: Cached values-Footnote-11032716
+Node: Array Manipulation1032807
+Ref: Array Manipulation-Footnote-11033898
+Node: Array Data Types1033935
+Ref: Array Data Types-Footnote-11036593
+Node: Array Functions1036685
+Node: Flattening Arrays1041084
+Node: Creating Arrays1048025
+Node: Redirection API1052794
+Node: Extension API Variables1055636
+Node: Extension Versioning1056269
+Ref: gawk-api-version1056706
+Node: Extension API Informational Variables1058434
+Node: Extension API Boilerplate1059498
+Node: Changes from API V11063360
+Node: Finding Extensions1064020
+Node: Extension Example1064579
+Node: Internal File Description1065377
+Node: Internal File Ops1069457
+Ref: Internal File Ops-Footnote-11080857
+Node: Using Internal File Ops1080997
+Ref: Using Internal File Ops-Footnote-11083380
+Node: Extension Samples1083654
+Node: Extension Sample File Functions1085183
+Node: Extension Sample Fnmatch1092832
+Node: Extension Sample Fork1094319
+Node: Extension Sample Inplace1095537
+Node: Extension Sample Ord1098747
+Node: Extension Sample Readdir1099583
+Ref: table-readdir-file-types1100472
+Node: Extension Sample Revout1101277
+Node: Extension Sample Rev2way1101866
+Node: Extension Sample Read write array1102606
+Node: Extension Sample Readfile1104548
+Node: Extension Sample Time1105643
+Node: Extension Sample API Tests1106991
+Node: gawkextlib1107483
+Node: Extension summary1109930
+Node: Extension Exercises1113632
+Node: Language History1115130
+Node: V7/SVR3.11116786
+Node: SVR41118938
+Node: POSIX1120372
+Node: BTL1121751
+Node: POSIX/GNU1122480
+Node: Feature History1128372
+Node: Common Extensions1142796
+Node: Ranges and Locales1144079
+Ref: Ranges and Locales-Footnote-11148695
+Ref: Ranges and Locales-Footnote-21148722
+Ref: Ranges and Locales-Footnote-31148957
+Node: Contributors1149178
+Node: History summary1154738
+Node: Installation1156118
+Node: Gawk Distribution1157062
+Node: Getting1157546
+Node: Extracting1158507
+Node: Distribution contents1160145
+Node: Unix Installation1166487
+Node: Quick Installation1167169
+Node: Shell Startup Files1169583
+Node: Additional Configuration Options1170672
+Node: Configuration Philosophy1172661
+Node: Non-Unix Installation1175030
+Node: PC Installation1175490
+Node: PC Binary Installation1176328
+Node: PC Compiling1176763
+Node: PC Using1177880
+Node: Cygwin1180925
+Node: MSYS1181695
+Node: VMS Installation1182196
+Node: VMS Compilation1182987
+Ref: VMS Compilation-Footnote-11184216
+Node: VMS Dynamic Extensions1184274
+Node: VMS Installation Details1185959
+Node: VMS Running1188212
+Node: VMS GNV1192491
+Node: VMS Old Gawk1193226
+Node: Bugs1193697
+Node: Bug address1194360
+Node: Usenet1196757
+Node: Maintainers1197534
+Node: Other Versions1198910
+Node: Installation summary1205494
+Node: Notes1206529
+Node: Compatibility Mode1207394
+Node: Additions1208176
+Node: Accessing The Source1209101
+Node: Adding Code1210536
+Node: New Ports1216754
+Node: Derived Files1221242
+Ref: Derived Files-Footnote-11226727
+Ref: Derived Files-Footnote-21226762
+Ref: Derived Files-Footnote-31227360
+Node: Future Extensions1227474
+Node: Implementation Limitations1228132
+Node: Extension Design1229315
+Node: Old Extension Problems1230469
+Ref: Old Extension Problems-Footnote-11231987
+Node: Extension New Mechanism Goals1232044
+Ref: Extension New Mechanism Goals-Footnote-11235408
+Node: Extension Other Design Decisions1235597
+Node: Extension Future Growth1237710
+Node: Old Extension Mechanism1238546
+Node: Notes summary1240309
+Node: Basic Concepts1241491
+Node: Basic High Level1242172
+Ref: figure-general-flow1242454
+Ref: figure-process-flow1243139
+Ref: Basic High Level-Footnote-11246440
+Node: Basic Data Typing1246625
+Node: Glossary1249953
+Node: Copying1281900
+Node: GNU Free Documentation License1319439
+Node: Index1344557
 
 End Tag Table

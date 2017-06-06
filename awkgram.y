@@ -58,6 +58,7 @@ static int load_library(INSTRUCTION *file);
 static void next_sourcefile(void);
 static char *tokexpand(void);
 static NODE *set_profile_text(NODE *n, const char *str, size_t len);
+static void validate_qualified_name(char *token);
 
 #define instruction(t)	bcalloc(t, 1, 0)
 
@@ -4120,9 +4121,22 @@ retry:
 	while (c != END_FILE && is_identchar(c)) {
 		tokadd(c);
 		c = nextc(true);
+		if (! do_traditional && c == ':') {
+			int peek = nextc(true);
+
+			if (peek == ':') {
+				tokadd(c);
+				tokadd(c);
+				c = nextc(true);
+			} else
+				pushback();
+				// then continue around the loop, c == ':'
+		}
 	}
 	tokadd('\0');
 	pushback();
+
+	validate_qualified_name(tokstart);
 
 	/* See if it is a special token. */
 	if ((mid = check_special(tokstart)) >= 0) {
@@ -4846,7 +4860,10 @@ check_params(char *fname, int pcount, INSTRUCTION *list)
 			error_ln(p->source_line,
 				_("function `%s': can't use special variable `%s' as a function parameter"),
 					fname, name);
-		}
+		} else if (strchr(name, ':'))
+			error_ln(p->source_line,
+				_("function `%s': parameter `%s' cannot contain a namespace"),
+					fname, name);
 
 		/* check for duplicate parameters */
 		for (j = 0; j < i; j++) {
@@ -6339,4 +6356,26 @@ set_profile_text(NODE *n, const char *str, size_t len)
 	}
 
 	return n;
+}
+
+/* validate_qualified_name --- make sure that a qualified name is built correctly */
+
+static void
+validate_qualified_name(char *token)
+{
+	char *cp;
+
+	if ((cp = strchr(token, ':')) == NULL)
+		return;
+
+	if (cp[2] != '_' && ! is_alpha(cp[2]))
+		error_ln(sourceline,
+				_("qualified identifier `%s' is badly formed"),
+				token);
+
+	cp += 2;
+	if ((cp = strchr(cp, ':')) != NULL)
+		error_ln(sourceline,
+			_("identifier `%s': namespace separator can only appear once in a qualified name"),
+			token);
 }

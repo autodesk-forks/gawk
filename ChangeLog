@@ -1,3 +1,9 @@
+2017-06-06         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* awkgram.y (yylex): Allow :: in identifiers (the "NAME" token).
+	Use validate_qualified_name to check it.
+	(validate_qualified_name): New function.
+
 2017-05-30         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awkgram.y (nextc): Force -e chunks to be syntactic units.
