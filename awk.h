@@ -735,6 +735,7 @@ typedef enum opcodeval {
 	Op_K_if,
 	Op_K_else,
 	Op_K_function,
+	Op_K_namespace,
 	Op_cond_exp,
 	Op_final			/* sentry value, not legal */
 } OPCODE;
@@ -1203,6 +1204,9 @@ extern char *deflibpath;
 extern char envsep;
 
 extern char casetable[];	/* for case-independent regexp matching */
+
+extern const char awk_namespace[];	/* "awk::" */
+extern const char *current_namespace;
 
 /* ------------------------- Runtime stack -------------------------------- */
 

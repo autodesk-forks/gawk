@@ -143,6 +143,9 @@ extern INSTRUCTION *rule_list;
 extern int max_args;
 extern NODE **args_array;
 
+const char awk_namespace[] = "awk::";
+const char *current_namespace = NULL;
+
 static INSTRUCTION *rule_block[sizeof(ruletab)];
 
 static INSTRUCTION *ip_rec;
@@ -188,7 +191,7 @@ extern double fmod(double x, double y);
 %token LEX_AND LEX_OR INCREMENT DECREMENT
 %token LEX_BUILTIN LEX_LENGTH
 %token LEX_EOF
-%token LEX_INCLUDE LEX_EVAL LEX_LOAD
+%token LEX_INCLUDE LEX_EVAL LEX_LOAD LEX_NAMESPACE
 %token NEWLINE
 
 /* Lowest to highest */
@@ -272,6 +275,21 @@ rule
 		at_seen = false;
 		yyerrok;
 	  }
+	| '@' LEX_NAMESPACE namespace statement_term
+	  {
+		want_source = false;
+		at_seen = false;
+fprintf(stderr, "setting namespace to %s\n", $3->lextok);
+/*
+		if (set_namespace($3->lextok) < 0)
+			YYABORT;
+*/
+		efree($3->lextok);
+		bcfree($3);
+		// for now:
+		bcfree($2);
+		yyerrok;
+	  }
 	;
 
 source
@@ -298,6 +316,15 @@ library
 		bcfree($1);
 		$$ = NULL;
 	  }
+	| FILENAME error
+	  { $$ = NULL; }
+	| error
+	  { $$ = NULL; }
+	;
+
+namespace
+	: FILENAME
+	  { $$ = $1; }
 	| FILENAME error
 	  { $$ = NULL; }
 	| error
@@ -2136,6 +2163,7 @@ static const struct token tokentab[] = {
 {"lshift",	Op_builtin,    LEX_BUILTIN,	GAWKX|A(2),	do_lshift,	MPF(lshift)},
 {"match",	Op_builtin,	 LEX_BUILTIN,	NOT_OLD|A(2)|A(3), do_match,	0},
 {"mktime",	Op_builtin,	 LEX_BUILTIN,	GAWKX|A(1)|A(2), do_mktime, 0},
+{"namespace",  	Op_K_namespace,	 LEX_NAMESPACE,	GAWKX,		0,	0},
 {"next",	Op_K_next,	 LEX_NEXT,	0,		0,	0},
 {"nextfile",	Op_K_nextfile, LEX_NEXTFILE,	0,		0,	0},
 {"or",		Op_builtin,    LEX_BUILTIN,	GAWKX,		do_or,	MPF(or)},
@@ -4121,7 +4149,15 @@ retry:
 	while (c != END_FILE && is_identchar(c)) {
 		tokadd(c);
 		c = nextc(true);
+
 		if (! do_traditional && c == ':') {
+			// check for keyword, etc.
+			tokadd('\0');
+			if ((mid = check_special(tokstart)) >= 0) {
+				tok--;
+				break;
+			}
+
 			int peek = nextc(true);
 
 			if (peek == ':') {
@@ -4143,9 +4179,16 @@ retry:
 		static int warntab[sizeof(tokentab) / sizeof(tokentab[0])];
 		int class = tokentab[mid].class;
 
-		if ((class == LEX_INCLUDE || class == LEX_LOAD || class == LEX_EVAL)
-				&& lasttok != '@')
-			goto out;
+		switch (class) {
+		case LEX_EVAL:
+		case LEX_INCLUDE:
+		case LEX_LOAD:
+		case LEX_NAMESPACE:
+			if (lasttok != '@')
+				goto out;
+		default:
+			break;
+		}
 
 		/* allow parameter names to shadow the names of gawk extension built-ins */
 		if ((tokentab[mid].flags & GAWKX) != 0) {
@@ -4200,6 +4243,9 @@ retry:
 			continue_allowed++;
 
 		switch (class) {
+		case LEX_NAMESPACE:
+			yylval = bcalloc(tokentab[mid].value, 1, sourceline);
+			// fall through
 		case LEX_INCLUDE:
 		case LEX_LOAD:
 			want_source = true;

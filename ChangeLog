@@ -1,3 +1,14 @@
+2017-06-11         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* awk.h (awk_namespace, current_namespace): Declare.
+	(opcodeval): Add Op_K_namespace.
+	* awkgram.y (awk_namespace, current_namespace): Define.
+	(LEX_NAMESPACE): Add lexing and parsing of `@namespace directive'.
+	(tokentab): Add "namespace" entry.
+	(yylex): Check if first part of qualified identifier is
+	a reserved word or function.
+	* eval.c (optypetab): Add Op_K_namespace.
+
 2017-06-06         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awkgram.y (yylex): Allow :: in identifiers (the "NAME" token).

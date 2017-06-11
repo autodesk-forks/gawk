@@ -380,6 +380,7 @@ static struct optypetab {
 	{ "Op_K_if", "if" },
 	{ "Op_K_else", "else" },
 	{ "Op_K_function", "function" },
+	{ "Op_K_namespace", "@namespace" },
 	{ "Op_cond_exp", NULL },
 	{ "Op_final --- this should never appear", NULL },
 	{ NULL, NULL },

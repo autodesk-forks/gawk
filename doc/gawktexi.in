@@ -26641,14 +26641,14 @@ This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 
 In standard @command{awk}, there is a single, global, @dfn{namespace}.
 This means that @emph{all} function names and global variable names must
-be unique. For example, two different @command{awk} source files cannot both define
-a function named @code{min()}.
+be unique. For example, two different @command{awk} source files cannot
+both define a function named @code{min()}.
 
-This situation is okay when programs are small, say a few hundred lines,
-or even a few thousand, but it prevents the development of reusable
-libraries of @command{awk} functions, and can inadvertently cause
-independently-developed library files to accidentally step on each other's
-``private'' global variables
+This situation is okay when programs are small, say a few hundred
+lines, or even a few thousand, but it prevents the development of
+reusable libraries of @command{awk} functions, and can inadvertently
+cause independently-developed library files to accidentally step on each
+other's ``private'' global variables
 (@pxref{Library Names}).
 
 Most other programming languages solve this issue by providing some kind
@@ -26659,28 +26659,39 @@ are much fewer namespaces in use by any given program, and thus much
 less chance for collisions.)
 
 Starting with @value{PVERSION} @strong{FIXME} 5.0, @command{gawk} provides a
-mechanism to put functions and global variables into different
-namespaces.
+mechanism to put functions and global variables into different namespaces.
 
 @node Qualified Names
 @section Qualified Names
 
 A @dfn{qualified name} is an identifier that includes a namespace
-name and the namespace separator, @code{::}.  For example, one might have a function named @code{posix::getpid()}.
-Here, the namespace is @code{posix} and the function name within the
-namespace is @code{getpid()}.  The namespace and variable or function
-name are separated by a double-colon.  Only one such separator is allowed in
-a qualified name.
+name and the namespace separator, @code{::}.  For example, one
+might have a function named @code{posix::getpid()}.  Here, the
+namespace is @code{posix} and the function name within the namespace
+is @code{getpid()}.  The namespace and variable or function name are
+separated by a double-colon.  Only one such separator is allowed in a
+qualified name.
 
-@quotation  NOTE
-Unlike C++, the @code{::} is @emph{not} an operator.  No spaces are allowed between
-the namespace name, the @code{::}, and the rest of the name.
+@quotation NOTE
+Unlike C++, the @code{::} is @emph{not} an operator.  No spaces are
+allowed between the namespace name, the @code{::}, and the rest of
+the name.
 @end quotation
 
 You must use fully qualified names from one namespace to access variables
-and functions in another.  This is especially important when using variable
-names to index the special @code{SYMTAB} array, and when making indirect function calls.
+and functions in another.  This is especially important when using
+variable names to index the special @code{SYMTAB} array, and when making
+indirect function calls.
 @strong{FIXME:} and xref.
+
+It is a syntax error to use any @command{gawk} reserved word (such
+as @code{if} or @code{for}), or the name of any built-in function
+(such as @code{sin()} or @code{gsub()} as the namespace part of a
+fully qualified name.
+
+On the other hand, @command{gawk} pre-defined variable names may be used:
+@code{NF::NR} is valid, if possibly not all that useful.@footnote{This
+could change, based on reviewer feedback.}
 
 @node Default Namespace
 @section The Default Namespace
@@ -26719,10 +26730,9 @@ source file, although this is likely to become confusing if you
 do it too much.
 
 @quotation NOTE
-The namespace concept is one handled while your program is
-being parsed by @command{gawk}. There is no concept of a
-``current'' namespace during runtime.  Be sure you understand
-the distinction.
+The namespace concept is one handled while your program is being parsed
+by @command{gawk}. There is no concept of a ``current'' namespace
+during runtime.  Be sure you understand the distinction.
 @end quotation
 
 Each source file for @option{-i} and @option{-f}
@@ -26746,8 +26756,9 @@ is mainly relevant when using such identifiers as indices for
 and for use in indirect function calls
 (FIXME: xref).
 
-In program code, to refer to variables and functions in the @samp{awk} namespace from
-another namespace, you must still use the @samp{awk::} prefix. For example:
+In program code, to refer to variables and functions in the @samp{awk}
+namespace from another namespace, you must still use the @samp{awk::}
+prefix. For example:
 
 @example
 @@namespace "awk"          # the default
@@ -26875,13 +26886,12 @@ Other notes for reviewers:
 
 @table @asis
 @item Profiler:
-When profiling, we can add an @code{Op_Namespace} to the start of
-each rule and function definition.  If this is different than the previous
-one, output an
-@samp{@@namespace} statement.  For each identifier, if it starts
-with the current namespace, output only the simple part.
-For all @samp{awk::XXX} if @samp{XXX} is all uppercase, strip
-off the @samp{awk::} part.
+When profiling, we can add an @code{Op_Namespace} to the start of each
+rule and function definition.  If this is different than the previous
+one, output an @samp{@@namespace} statement.  For each identifier,
+if it starts with the current namespace, output only the simple part.
+For all @samp{awk::XXX} if @samp{XXX} is all uppercase, strip off the
+@samp{awk::} part.
 
 @item Debugger:
 Simply print fully qualified names all the time. Maybe allow a
@@ -26890,9 +26900,9 @@ namespace and it will use that to create fully qualified names?
 Have to be careful about all uppercase names though.
 
 @item How does this affect @code{@@include}?
-Basically @code{@@include} should push and pop the namespace. Each @code{@@include}
-saves the current namespace and starts over with namespace @samp{awk} until
-an @code{@@namespace} is seen.
+Basically @code{@@include} should push and pop the namespace. Each
+@code{@@include} saves the current namespace and starts over with
+namespace @samp{awk} until an @code{@@namespace} is seen.
 
 @item Extension functions
 Revise the current macros to pass @code{"awk"} as the namespace

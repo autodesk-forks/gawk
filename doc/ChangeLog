@@ -1,3 +1,9 @@
+2017-06-11         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* gawktexi.in (Namespaces): Document that reserved words and
+	predefined functions can't be namespace names. Reformat the
+	input a little bit.
+
 2017-06-06         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* gawktexi.in (Namespaces): Further clarifications. Move to
