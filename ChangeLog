@@ -1,3 +1,18 @@
+2017-06-13         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* awk.h (awk_namespace, current_namespace): Move to const char.
+	(SRCFILE): Add namespace element.
+	* awkgram.y (awk_namespace, current_namespace): Move to const char.
+	(set_namespace): New function.
+	[Grammer]: Call it.
+	(tokentab): Add "namespace" entry.
+	(include_source): Push the current namespace.
+	(next_sourcefile): Pop the current namespace.
+	(yylex): Add lint warning if a reserved word is used as a namespace
+	name.
+	(validate_qualified_name): Make it an error to use a reserved
+	word as the second part of a fully qualified name.
+
 2017-06-11         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awk.h (awk_namespace, current_namespace): Declare.

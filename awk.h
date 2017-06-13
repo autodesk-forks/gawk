@@ -1023,6 +1023,8 @@ typedef struct srcfile {
 	char *lexeme;
 	char *lexptr_begin;
 	int lasttok;
+
+	const char *namespace;
 } SRCFILE;
 
 // structure for INSTRUCTION pool, needed mainly for debugger
@@ -1205,7 +1207,7 @@ extern char envsep;
 
 extern char casetable[];	/* for case-independent regexp matching */
 
-extern const char awk_namespace[];	/* "awk::" */
+extern const char awk_namespace[];	/* "awk" */
 extern const char *current_namespace;
 
 /* ------------------------- Runtime stack -------------------------------- */

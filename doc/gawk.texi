@@ -27672,12 +27672,12 @@ indirect function calls.
 
 It is a syntax error to use any @command{gawk} reserved word (such
 as @code{if} or @code{for}), or the name of any built-in function
-(such as @code{sin()} or @code{gsub()} as the namespace part of a
-fully qualified name.
+(such as @code{sin()} or @code{gsub()} as the second part of a
+fully qualified name.  Using such an identifier as a namespace
+name (currently) @emph{is} allowed, but produces a lint warning.
 
-On the other hand, @command{gawk} pre-defined variable names may be used:
-@code{NF::NR} is valid, if possibly not all that useful.@footnote{This
-could change, based on reviewer feedback.}
+@command{gawk} pre-defined variable names may be used:
+@code{NF::NR} is valid, if possibly not all that useful.
 
 @node Default Namespace
 @section The Default Namespace

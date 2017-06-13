@@ -55,6 +55,7 @@ static void dumpintlstr(const char *str, size_t len);
 static void dumpintlstr2(const char *str1, size_t len1, const char *str2, size_t len2);
 static int include_source(INSTRUCTION *file);
 static int load_library(INSTRUCTION *file);
+static bool set_namespace(INSTRUCTION *ns);
 static void next_sourcefile(void);
 static char *tokexpand(void);
 static NODE *set_profile_text(NODE *n, const char *str, size_t len);
@@ -143,8 +144,8 @@ extern INSTRUCTION *rule_list;
 extern int max_args;
 extern NODE **args_array;
 
-const char awk_namespace[] = "awk::";
-const char *current_namespace = NULL;
+const char awk_namespace[] = "awk";
+const char *current_namespace = awk_namespace;
 
 static INSTRUCTION *rule_block[sizeof(ruletab)];
 
@@ -279,15 +280,11 @@ rule
 	  {
 		want_source = false;
 		at_seen = false;
-fprintf(stderr, "setting namespace to %s\n", $3->lextok);
-/*
-		if (set_namespace($3->lextok) < 0)
+
+		// this frees $3 storage in all cases
+		if (! set_namespace($3))
 			YYABORT;
-*/
-		efree($3->lextok);
-		bcfree($3);
-		// for now:
-		bcfree($2);
+
 		yyerrok;
 	  }
 	;
@@ -2163,7 +2160,7 @@ static const struct token tokentab[] = {
 {"lshift",	Op_builtin,    LEX_BUILTIN,	GAWKX|A(2),	do_lshift,	MPF(lshift)},
 {"match",	Op_builtin,	 LEX_BUILTIN,	NOT_OLD|A(2)|A(3), do_match,	0},
 {"mktime",	Op_builtin,	 LEX_BUILTIN,	GAWKX|A(1)|A(2), do_mktime, 0},
-{"namespace",  	Op_K_namespace,	 LEX_NAMESPACE,	GAWKX,		0,	0},
+{"namespace",  	Op_symbol,	 LEX_NAMESPACE,	GAWKX,		0,	0},
 {"next",	Op_K_next,	 LEX_NEXT,	0,		0,	0},
 {"nextfile",	Op_K_nextfile, LEX_NEXTFILE,	0,		0,	0},
 {"or",		Op_builtin,    LEX_BUILTIN,	GAWKX,		do_or,	MPF(or)},
@@ -2770,6 +2767,7 @@ include_source(INSTRUCTION *file)
 	sourcefile->lexptr_begin = lexptr_begin;
 	sourcefile->lexeme = lexeme;
 	sourcefile->lasttok = lasttok;
+	sourcefile->namespace = current_namespace;
 
 	/* included file becomes the current source */
 	sourcefile = s;
@@ -2779,6 +2777,7 @@ include_source(INSTRUCTION *file)
 	lasttok = 0;
 	lexeof = false;
 	eof_warned = false;
+	current_namespace = awk_namespace;
 	return 0;
 }
 
@@ -2873,11 +2872,15 @@ next_sourcefile()
 		lexeme = sourcefile->lexeme;
 		sourceline = sourcefile->srclines;
 		source = sourcefile->src;
+		if (current_namespace != awk_namespace)
+			efree((char *) current_namespace);
+		current_namespace = sourcefile->namespace;
 	} else {
 		lexptr = NULL;
 		sourceline = 0;
 		source = NULL;
 		lasttok = 0;
+		current_namespace = awk_namespace;
 	}
 }
 
@@ -4151,19 +4154,22 @@ retry:
 		c = nextc(true);
 
 		if (! do_traditional && c == ':') {
-			// check for keyword, etc.
-			tokadd('\0');
-			if ((mid = check_special(tokstart)) >= 0) {
-				tok--;
-				break;
-			}
-
 			int peek = nextc(true);
 
-			if (peek == ':') {
+			if (peek == ':') {	// saw identifier::
+				char *end = tok;
+
 				tokadd(c);
 				tokadd(c);
 				c = nextc(true);
+
+				// check for keyword, etc.
+				*end = '\0';
+				if (do_lint && (mid = check_special(tokstart)) >= 0) {
+					lintwarn(_("using reserved identifier `%s' as a namespace name may be confusing"), tokstart);
+					// but keep going anyway
+				}
+				*end = ':';
 			} else
 				pushback();
 				// then continue around the loop, c == ':'
@@ -4244,8 +4250,6 @@ retry:
 
 		switch (class) {
 		case LEX_NAMESPACE:
-			yylval = bcalloc(tokentab[mid].value, 1, sourceline);
-			// fall through
 		case LEX_INCLUDE:
 		case LEX_LOAD:
 			want_source = true;
@@ -6409,7 +6413,7 @@ set_profile_text(NODE *n, const char *str, size_t len)
 static void
 validate_qualified_name(char *token)
 {
-	char *cp;
+	char *cp, *cp2;
 
 	if ((cp = strchr(token, ':')) == NULL)
 		return;
@@ -6419,9 +6423,71 @@ validate_qualified_name(char *token)
 				_("qualified identifier `%s' is badly formed"),
 				token);
 
-	cp += 2;
-	if ((cp = strchr(cp, ':')) != NULL)
+	if ((cp2 = strchr(cp+2, ':')) != NULL)
 		error_ln(sourceline,
 			_("identifier `%s': namespace separator can only appear once in a qualified name"),
 			token);
+
+	cp += 2;	// skip past ::
+	int mid = check_special(cp);
+	if (mid >= 0)
+		error_ln(sourceline,
+				_("using reserved identifier `%s' as second component of a qualified name is not allowed"), cp);
+}
+
+/* set_namespace --- change the current namespace */
+
+static bool
+set_namespace(INSTRUCTION *ns)
+{
+	if (do_traditional || do_posix) {
+		error_ln(ns->source_line, _("@namespace is a gawk extension"));
+		efree(ns->lextok);
+		bcfree(ns);
+		return false;
+	}
+
+	if (ns == NULL)
+		return false;
+
+	char *cp = ns->lextok;
+	if (*cp != '_' && ! is_alpha(*cp)) {
+		error_ln(ns->source_line, _("namespace name `%s' must meet identifier naming rules"), ns->lextok);
+		efree(ns->lextok);
+		bcfree(ns);
+		return false;
+	}
+
+	for (cp++; *cp != '\0'; cp++) {
+		if (! is_identchar(*cp)) {
+			error_ln(ns->source_line, _("namespace name `%s' must meet identifier naming rules"), ns->lextok);
+			efree(ns->lextok);
+			bcfree(ns);
+			return false;
+		}
+	}
+
+	if (do_lint) {
+		int mid = check_special(ns->lextok);
+
+		if (mid >= 0)
+			lintwarn(_("using reserved identifier `%s' as a namespace name may be confusing"),
+					ns->lextok);
+	}
+
+	if (strcmp(ns->lextok, current_namespace) == 0) {
+		efree(ns->lextok);
+	} else if (strcmp(ns->lextok, awk_namespace) == 0) {
+		efree(ns->lextok);
+		current_namespace = awk_namespace;
+	} else {
+		if (current_namespace != awk_namespace)
+			efree((char *) current_namespace);
+		current_namespace = ns->lextok;
+	}
+
+	ns->lextok = NULL;
+	bcfree(ns);
+
+	return true;
 }
