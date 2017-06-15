@@ -27607,6 +27607,7 @@ It contains the following chapters:
 @end itemize
 @end ifdocbook
 
+@hyphenation{name-space name-spaces Name-space Name-spaces}
 @node Namespaces
 @chapter Namespaces in @command{gawk}
 
@@ -27672,7 +27673,7 @@ indirect function calls.
 
 It is a syntax error to use any @command{gawk} reserved word (such
 as @code{if} or @code{for}), or the name of any built-in function
-(such as @code{sin()} or @code{gsub()} as the second part of a
+(such as @code{sin()} or @code{gsub()}) as the second part of a
 fully qualified name.  Using such an identifier as a namespace
 name (currently) @emph{is} allowed, but produces a lint warning.
 
@@ -27747,17 +27748,17 @@ namespace from another namespace, you must still use the @samp{awk::}
 prefix. For example:
 
 @example
-@@namespace "awk"          # the default
+@@namespace "awk"          @ii{This is the default namespace}
 
 BEGIN @{
-    Title = "My Report"   # fully qualified name is awk::Title
+    Title = "My Report"   @ii{Fully qualified name is} awk::Title
 @}
 
-@@namespace "report"       # now in "report" namespace
+@@namespace "report"       @ii{Now in} report @ii{namespace}
 
-function compute()	  # this is really report::compute()
+function compute()        @ii{This is really} report::compute()
 @{
-    print awk::Title      # but would be SYMTAB["Title"]
+    print awk::Title      @ii{But would be} SYMTAB["Title"]
     @dots{}
 @}
 @end example
