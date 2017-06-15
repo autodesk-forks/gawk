@@ -1,5 +1,6 @@
 2017-06-15         Arnold D. Robbins     <arnold@skeeve.com>
 
+	* gawktexi.in: Expand tab characters.
 	* gawktexi.in (Namespaces): Further minor doc edits, including
 	hyphenation hint.
 
