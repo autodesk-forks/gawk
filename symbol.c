@@ -38,6 +38,7 @@ static void (*install_func)(NODE *) = NULL;
 static NODE *make_symbol(const char *name, NODETYPE type);
 static NODE *install(const char *name, NODE *parm, NODETYPE type);
 static void free_bcpool(INSTRUCTION_POOL *pl);
+static const char *fix_up_namespace(const char *name);
 
 static AWK_CONTEXT *curr_ctxt = NULL;
 static int ctxt_level;
@@ -87,7 +88,7 @@ install_symbol(const char *name, NODETYPE type)
  */
 
 NODE *
-lookup(const char *name)
+lookup(const char *name, bool do_qualify)
 {
 	NODE *n;
 	NODE *tmp;
@@ -100,6 +101,9 @@ lookup(const char *name)
 	tables[2] = func_table;		/* then functions */
 	tables[3] = symbol_table;	/* then globals */
 	tables[4] = NULL;
+
+	if (do_qualify)
+		name = fix_up_namespace(name);
 
 	tmp = make_string(name, strlen(name));
 
@@ -303,6 +307,8 @@ install(const char *name, NODE *parm, NODETYPE type)
 	NODE *table;
 	NODE *n_name;
 	NODE *prev;
+
+	name = fix_up_namespace(name);
 
 	n_name = make_string(name, strlen(name));
 	table = symbol_table;
@@ -943,4 +949,65 @@ free_bcpool(INSTRUCTION_POOL *pl)
 
 	for (i = 0; i < MAX_INSTRUCTION_ALLOC; i++)
 		free_bc_mempool(& pl->pool[i], i + 1);
+}
+
+/* is_all_upper --- return true if name is all uppercase letters */
+
+static bool
+is_all_upper(const char *name)
+{
+	for (; *name != '\0'; name ++) {
+		switch (*name) {
+		case 'A': case 'B': case 'C': case 'D': case 'E':
+		case 'F': case 'G': case 'H': case 'I': case 'J':
+		case 'K': case 'L': case 'M': case 'N': case 'O':
+		case 'P': case 'Q': case 'R': case 'S': case 'T':
+		case 'U': case 'V': case 'W': case 'X': case 'Y':
+		case 'Z':
+			break;
+		default:
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/* fix_up_namespace --- qualify / dequalify a simple name */
+
+static const char *
+fix_up_namespace(const char *name)
+{
+	static char awk_ns[] = "awk::";
+	const size_t awk_ns_len = sizeof(awk_ns) - 1;	// don't include trailing \0
+	static size_t len = 0;
+	static char *buf = NULL;
+	char *cp;
+
+	// first, check if it's qualified
+	if ((cp = strchr(name, ':')) != NULL) {
+		// does it start with awk:: ?
+		if (strncmp(name, awk_ns, awk_ns_len) == 0)
+			return cp + 2;	// just trailing part
+
+		// otherwise it's fully qualified, not in the awk n.s.
+		return name;
+	}
+
+	// not fully qualified
+	if (current_namespace == awk_namespace || is_all_upper(name))
+		return name;	// put it into awk namespace
+
+	size_t needed = strlen(current_namespace) + 2 + strlen(name) + 1;
+	if (len == 0) {
+		emalloc(buf, char *, needed, "fix_up_namespace");
+		len = needed;
+	} else if (len < needed) {
+		erealloc(buf, char *, needed, "fix_up_namespace");
+		len = needed;
+	} // else
+		// nothing to do, just sprintf into the buffer
+
+	sprintf(buf, "%s::%s", current_namespace, name);
+	return buf;
 }

@@ -683,10 +683,11 @@ api_sym_lookup(awk_ext_id_t id,
 
 	update_global_values();		/* make sure stuff like NF, NR, are up to date */
 
+	// FIXME, need to handle namespaces if name not null and not empty
 	if (   name == NULL
 	    || *name == '\0'
 	    || result == NULL
-	    || (node = lookup(name)) == NULL)
+	    || (node = lookup(name, false)) == NULL)
 		return awk_false;
 
 	if (is_off_limits_var(name))	/* a built-in variable */
@@ -746,7 +747,8 @@ api_sym_update(awk_ext_id_t id,
 		return awk_false;
 	}
 
-	node = lookup(name);
+	// FIXME: Deal with namespaces
+	node = lookup(name, false);
 
 	if (node == NULL) {
 		/* new value to be installed */

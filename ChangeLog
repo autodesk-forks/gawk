@@ -1,3 +1,22 @@
+2017-06-16         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* awk.h (lookup): Add second parameter.
+	* array.c (assoc_list): Adjust call to lookup.
+	* awkgram.y (grammar, parms_shadow, install_function, variable):
+	Ditto.
+	* command.y [Grammar]: Ditto.
+	* debug.c (find_symbol): Ditto.
+	* ext.c (make_builtin): Ditto.
+	* gawkapi.c (api_sym_lookup, api_sym_update): Ditto.
+	* interpret.h (r_interpret): Ditto.
+	* main.c (arg_assign): Ditto.
+	(main): Reset current_namespace after parsing.
+	* symbol.c (lookup): New second parameter, do_qualify. Use it
+	to qualify names or not.
+	(install): Call fix_up_namespace.
+	(is_all_upper): New helper routine.
+	(fix_up_namespace): New function.
+
 2017-06-13         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awk.h (awk_namespace, current_namespace): Move to const char.

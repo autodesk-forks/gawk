@@ -1707,7 +1707,7 @@ extern NODE *remove_symbol(NODE *r);
 extern void destroy_symbol(NODE *r);
 extern void release_symbols(NODE *symlist, int keep_globals);
 extern void append_symbol(NODE *r);
-extern NODE *lookup(const char *name);
+extern NODE *lookup(const char *name, bool do_qualify);
 extern NODE *make_params(char **pnames, int pcount);
 extern void install_params(NODE *func);
 extern void remove_params(NODE *func);

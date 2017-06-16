@@ -461,6 +461,11 @@ main(int argc, char **argv)
 	if (do_intl)
 		exit(EXIT_SUCCESS);
 
+	if (current_namespace != awk_namespace) {
+		efree((char *) current_namespace);
+		current_namespace = awk_namespace;
+	}
+
 	install_builtins();
 
 	if (do_lint)
@@ -1146,7 +1151,7 @@ arg_assign(char *arg, bool initing)
 			fatal(_("cannot use gawk builtin `%s' as variable name"), arg);
 
 		if (! initing) {
-			var = lookup(arg);
+			var = lookup(arg, false);
 			if (var != NULL && var->type == Node_func)
 				fatal(_("cannot use function `%s' as variable name"), arg);
 		}

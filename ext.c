@@ -113,7 +113,8 @@ make_builtin(const awk_ext_func_t *funcinfo)
 			return awk_false;
 	}
 
-	f = lookup(name);
+	// FIXME: Handle namespaces here
+	f = lookup(name, false);
 
 	if (f != NULL) {
 		if (f->type == Node_func) {

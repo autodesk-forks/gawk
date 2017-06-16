@@ -4050,7 +4050,7 @@ regular_print:
 		NODE *n;
 
 		if (! at_seen) {
-			n = lookup((yyvsp[-3])->func_name);
+			n = lookup((yyvsp[-3])->func_name, true);
 			if (n != NULL && n->type != Node_func
 			    && n->type != Node_ext_func) {
 				error_ln((yyvsp[-3])->source_line,
@@ -6640,7 +6640,7 @@ retry:
 				goto out;
 			case FUNC_BODY:
 				/* in body, name must be in symbol table for it to be a parameter */
-				if ((f = lookup(tokstart)) != NULL) {
+				if ((f = lookup(tokstart, false)) != NULL) {
 					if (f->type == Node_builtin_func)
 						break;
 					else
@@ -7121,7 +7121,7 @@ parms_shadow(INSTRUCTION *pc, bool *shadow)
 	 * about all shadowed parameters.
 	 */
 	for (i = 0; i < pcount; i++) {
-		if (lookup(fp[i].param) != NULL) {
+		if (lookup(fp[i].param, false) != NULL) {
 			warning(
 	_("function `%s': parameter `%s' shadows global variable"),
 					fname, fp[i].param);
@@ -7291,7 +7291,7 @@ install_function(char *fname, INSTRUCTION *fi, INSTRUCTION *plist)
 	NODE *r, *f;
 	int pcount = 0;
 
-	r = lookup(fname);
+	r = lookup(fname, true);
 	if (r != NULL) {
 		error_ln(fi->source_line, _("function name `%s' previously defined"), fname);
 		return -1;
@@ -7495,7 +7495,7 @@ variable(int location, char *name, NODETYPE type)
 {
 	NODE *r;
 
-	if ((r = lookup(name)) != NULL) {
+	if ((r = lookup(name, true)) != NULL) {
 		if (r->type == Node_func || r->type == Node_ext_func )
 			error_ln(location, _("function `%s' called with space between name and `(',\nor used as a variable or an array"),
 				r->vname);

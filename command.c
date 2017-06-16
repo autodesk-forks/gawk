@@ -1959,7 +1959,7 @@ yyreduce:
 #line 471 "command.y" /* yacc.c:1646  */
     {
 		NODE *n;
-		n = lookup((yyvsp[0])->a_string);
+		n = lookup((yyvsp[0])->a_string, true);
 		if (n == NULL || n->type != Node_func)
 			yyerror(_("no such function - \"%s\""), (yyvsp[0])->a_string);
 		else {

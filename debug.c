@@ -1024,7 +1024,7 @@ NODE *find_symbol(const char *name, char **pname)
 	if (prog_running)
 		r = find_param(name, cur_frame, pname);
 	if (r == NULL)
-		r = lookup(name);
+		r = lookup(name, false); // for now, require fully qualified name
 	if (r == NULL)
 		fprintf(out_fp, _("no symbol `%s' in current context\n"), name);
 	return r;
@@ -5523,7 +5523,7 @@ do_eval(CMDARG *arg, int cmd ATTRIBUTE_UNUSED)
 		return false;
 	}
 
-	f = lookup("@eval");
+	f = lookup("@eval", false);
 	assert(f != NULL);
 	if (this_func == NULL) {	/* in main */
 		/* do a function call */
