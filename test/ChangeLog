@@ -1,3 +1,8 @@
+2017-06-18         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* Makefile.am (mbprintf5): New test.
+	* mbprintf5.awk, mbprintf5.in, mbprintf5.ok: New files.
+
 2017-05-30         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* sourceplit.ok: Revise to match changed code.
