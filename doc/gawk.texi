@@ -27629,7 +27629,7 @@ This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 In standard @command{awk}, there is a single, global, @dfn{namespace}.
 This means that @emph{all} function names and global variable names must
 be unique. For example, two different @command{awk} source files cannot
-both define a function named @code{min()}.
+both define a function named @code{min()}, or define an array named @code{data}.
 
 This situation is okay when programs are small, say a few hundred
 lines, or even a few thousand, but it prevents the development of
@@ -27643,10 +27643,11 @@ of namespace control: a way to say ``this function is in namespace @var{xxx},
 and that function is in namespace @var{yyy}.''  (Of course, there is then
 still a single namespace for the namespaces, but the hope is that there
 are much fewer namespaces in use by any given program, and thus much
-less chance for collisions.)
+less chance for collisions.)  These facilities are sometimes referred
+to as @dfn{packages} or @dfn{modules}.
 
 Starting with @value{PVERSION} @strong{FIXME} 5.0, @command{gawk} provides a
-mechanism to put functions and global variables into different namespaces.
+mechanism to put functions and global variables into separate namespaces.
 
 @node Qualified Names
 @section Qualified Names
@@ -27667,9 +27668,8 @@ the name.
 
 You must use fully qualified names from one namespace to access variables
 and functions in another.  This is especially important when using
-variable names to index the special @code{SYMTAB} array, and when making
-indirect function calls.
-@strong{FIXME:} and xref.
+variable names to index the special @code{SYMTAB} array (@pxref{Auto-set}),
+and when making indirect function calls (@pxref{Indirect Calls}).
 
 It is a syntax error to use any @command{gawk} reserved word (such
 as @code{if} or @code{for}), or the name of any built-in function
@@ -27717,17 +27717,16 @@ source file, although this is likely to become confusing if you
 do it too much.
 
 @quotation NOTE
-The namespace concept is one handled while your program is being parsed
-by @command{gawk}. There is no concept of a ``current'' namespace
-during runtime.  Be sure you understand the distinction.
+Association of unqualified identifiers to a namespace is handled while
+your program is being parsed by @command{gawk} and before it starts
+to run.  There is no concept of a ``current'' namespace once your program
+starts executing.  Be sure you understand this.
 @end quotation
 
-Each source file for @option{-i} and @option{-f}
-(FIXME: pxref)
-starts out with an implicit @samp{@@namespace "awk"}.
-
-Similarly, each chunk of command-line code with @option{-e} has such an implicit
-statement.
+Each source file for @option{-i} and @option{-f} starts out with
+an implicit @samp{@@namespace "awk"}.  Similarly, each chunk of
+command-line code supplied with @option{-e} has such an implicit
+initial statement (@pxref{Options}).
 
 The use of @samp{@@namespace} has no influence upon the order of execution
 of @code{BEGIN}, @code{BEGINFILE}, @code{END}, and @code{ENDFILE} rules.
@@ -27735,13 +27734,11 @@ of @code{BEGIN}, @code{BEGINFILE}, @code{END}, and @code{ENDFILE} rules.
 @node Internal Name Management
 @section Internal Name Management
 
-For backwards compatibility, all identifiers in the @samp{awk}
-namespace are stored internally as unadorned identifiers.  This
-is mainly relevant when using such identifiers as indices for
-@code{SYMTAB}, @code{FUNCTAB}, and @code{PROCINFO["identifiers"]}
-(FIXME: xref),
-and for use in indirect function calls
-(FIXME: xref).
+For backwards compatibility, all identifiers in the @samp{awk} namespace
+are stored internally as unadorned identifiers.  This is mainly relevant
+when using such identifiers as indices for @code{SYMTAB}, @code{FUNCTAB},
+and @code{PROCINFO["identifiers"]} (@pxref{Auto-set}), and for use in
+indirect function calls (@pxref{Indirect Calls}).
 
 In program code, to refer to variables and functions in the @samp{awk}
 namespace from another namespace, you must still use the @samp{awk::}
