@@ -38,7 +38,7 @@ static void (*install_func)(NODE *) = NULL;
 static NODE *make_symbol(const char *name, NODETYPE type);
 static NODE *install(const char *name, NODE *parm, NODETYPE type);
 static void free_bcpool(INSTRUCTION_POOL *pl);
-static const char *fix_up_namespace(const char *name);
+static const char *fix_up_namespace(const char *name, bool *malloced);
 
 static AWK_CONTEXT *curr_ctxt = NULL;
 static int ctxt_level;
@@ -94,6 +94,7 @@ lookup(const char *name, bool do_qualify)
 	NODE *tmp;
 	NODE *tables[5];	/* manual init below, for z/OS */
 	int i;
+	bool malloced;
 
 	/* ``It's turtles, all the way down.'' */
 	tables[0] = param_table;	/* parameters shadow everything */
@@ -103,9 +104,12 @@ lookup(const char *name, bool do_qualify)
 	tables[4] = NULL;
 
 	if (do_qualify)
-		name = fix_up_namespace(name);
+		name = fix_up_namespace(name, & malloced);
 
-	tmp = make_string(name, strlen(name));
+	if (malloced)
+		tmp = make_str_node(name, strlen(name), ALREADY_MALLOCED);
+	else
+		tmp = make_string(name, strlen(name));
 
 	n = NULL;
 	for (i = 0; tables[i] != NULL; i++) {
@@ -306,10 +310,15 @@ install(const char *name, NODE *parm, NODETYPE type)
 	NODE *table;
 	NODE *n_name;
 	NODE *prev;
+	bool malloced;
 
-	name = fix_up_namespace(name);
+	name = fix_up_namespace(name, & malloced);
 
-	n_name = make_string(name, strlen(name));
+	if (malloced)
+		n_name = make_str_node(name, strlen(name), ALREADY_MALLOCED);
+	else
+		n_name = make_string(name, strlen(name));
+
 	table = symbol_table;
 
 	if (type == Node_param_list) {
@@ -974,13 +983,14 @@ is_all_upper(const char *name)
 /* fix_up_namespace --- qualify / dequalify a simple name */
 
 static const char *
-fix_up_namespace(const char *name)
+fix_up_namespace(const char *name, bool *malloced)
 {
 	static char awk_ns[] = "awk::";
 	const size_t awk_ns_len = sizeof(awk_ns) - 1;	// don't include trailing \0
-	static size_t len = 0;
-	static char *buf = NULL;
 	char *cp;
+
+	assert(malloced != NULL);
+	*malloced = false;
 
 	// first, check if it's qualified
 	if ((cp = strchr(name, ':')) != NULL) {
@@ -996,16 +1006,13 @@ fix_up_namespace(const char *name)
 	if (current_namespace == awk_namespace || is_all_upper(name))
 		return name;	// put it into awk namespace
 
-	size_t needed = strlen(current_namespace) + 2 + strlen(name) + 1;
-	if (len == 0) {
-		emalloc(buf, char *, needed, "fix_up_namespace");
-		len = needed;
-	} else if (len < needed) {
-		erealloc(buf, char *, needed, "fix_up_namespace");
-		len = needed;
-	} // else
-		// nothing to do, just sprintf into the buffer
+	// make it fully qualified
+	size_t len = strlen(current_namespace) + 2 + strlen(name) + 1;
+	char *buf = NULL;
 
+	emalloc(buf, char *, len, "fix_up_namespace");
 	sprintf(buf, "%s::%s", current_namespace, name);
+	*malloced = true;
+
 	return buf;
 }

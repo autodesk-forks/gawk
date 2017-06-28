@@ -1,3 +1,15 @@
+2017-06-28         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* awk.h [ns_name]: Add macro in preparation for use.
+	* debug.c (print_instruction): Add case for Op_K_namespace.
+	Not really used yet.
+	* symbol.c (fix_up_namespace): Bug fix to always allocate
+	memory for a full name. Add boolean parameter to indicate
+	if memory was malloc'ed or not.
+	(lookup): Adjust call to fix_up_namespace and use make_str_node
+	if the string was malloced.
+	(install): Ditto.
+
 2017-06-25         Andrew J. Schorr     <aschorr@telemetry-investments.com>
 
 	* gawkmisc.c (xmalloc): Remove function now in support/xalloc.h.

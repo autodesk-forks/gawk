@@ -3979,6 +3979,10 @@ print_instruction(INSTRUCTION *pc, Func_print print_func, FILE *fp, int in_dump)
 		print_func(fp, "[expr_count = %ld]\n", pc->expr_count);
 		break;
 
+	case Op_K_namespace:
+		print_func(fp, "[ns_name = %s]\n", pc->ns_name);
+		break;
+
 	case Op_concat:
 		/* NB: concat_flag CSVAR only used in grammar, don't display it */
 		print_func(fp, "[expr_count = %ld] [concat_flag = %s]\n",

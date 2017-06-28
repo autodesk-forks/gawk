@@ -929,6 +929,9 @@ typedef struct exp_instruction {
 #define condpair_left   d.di
 #define condpair_right  x.xi
 
+/* Op_K_namespace */
+#define ns_name		d.name
+
 /* Op_store_var */
 #define initval         x.xn
 
