@@ -60,6 +60,7 @@ static void next_sourcefile(void);
 static char *tokexpand(void);
 static NODE *set_profile_text(NODE *n, const char *str, size_t len);
 static void validate_qualified_name(char *token);
+static char *make_pp_namespace();
 
 #define instruction(t)	bcalloc(t, 1, 0)
 
@@ -2121,7 +2122,7 @@ static const struct token tokentab[] = {
 {"BEGIN",	Op_rule,	 LEX_BEGIN,	0,		0,	0},
 {"BEGINFILE",	Op_rule,	 LEX_BEGINFILE,	GAWKX,		0,	0},
 {"END",		Op_rule,	 LEX_END,	0,		0,	0},
-{"ENDFILE",		Op_rule,	 LEX_ENDFILE,	GAWKX,		0,	0},
+{"ENDFILE",	Op_rule,	 LEX_ENDFILE,	GAWKX,		0,	0},
 #ifdef ARRAYDEBUG
 {"adump",	Op_builtin,    LEX_BUILTIN,	GAWKX|A(1)|A(2)|DEBUG_USE,	do_adump,	0},
 #endif
@@ -4272,7 +4273,7 @@ retry:
 		case LEX_END:
 		case LEX_BEGINFILE:
 		case LEX_ENDFILE:
-			yylval = bcalloc(tokentab[mid].value, 3, sourceline);
+			yylval = bcalloc(tokentab[mid].value, 4, sourceline);
 			break;
 
 		case LEX_FOR:
@@ -4827,8 +4828,10 @@ mk_function(INSTRUCTION *fi, INSTRUCTION *def)
 	def->lasti->memory = dupnode(Nnull_string);
 	(void) list_append(def, instruction(Op_K_return));
 
-	if (do_pretty_print)
+	if (do_pretty_print) {
+		fi[3].ns_name = make_pp_namespace();
 		(void) list_prepend(def, instruction(Op_exec_count));
+	}
 
 	/* fi->opcode = Op_func */
 	(fi + 1)->firsti = def->nexti;
@@ -5530,8 +5533,10 @@ append_rule(INSTRUCTION *pattern, INSTRUCTION *action)
 
 	if (rule != Rule) {
 		rp = pattern;
-		if (do_pretty_print)
+		if (do_pretty_print) {
+			rp[3].ns_name = make_pp_namespace();
 			(void) list_append(action, instruction(Op_no_op));
+		}
 		(rp + 1)->firsti = action->nexti;
 		(rp + 1)->lasti = action->lasti;
 		(rp + 2)->first_line = pattern->source_line;
@@ -5543,10 +5548,13 @@ append_rule(INSTRUCTION *pattern, INSTRUCTION *action)
 			ip = list_prepend(action, rp);
 
 	} else {
-		rp = bcalloc(Op_rule, 3, 0);
+		rp = bcalloc(Op_rule, 4, 0);
 		rp->in_rule = Rule;
 		rp->source_file = source;
 		tp = instruction(Op_no_op);
+
+		if (do_pretty_print)
+			rp[3].ns_name = make_pp_namespace();
 
 		if (pattern == NULL) {
 			/* assert(action != NULL); */
@@ -6492,4 +6500,18 @@ set_namespace(INSTRUCTION *ns)
 	bcfree(ns);
 
 	return true;
+}
+
+/* make_pp_namespace --- make namespace string for use by pretty printer */
+
+static char *
+make_pp_namespace()
+{
+	size_t len = strlen(current_namespace) + 3;
+	char *buf;
+
+	emalloc(buf, char *, len, "make_pp_namespace");
+	sprintf(buf, "%s::", current_namespace);
+
+	return buf;
 }

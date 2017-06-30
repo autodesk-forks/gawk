@@ -735,7 +735,6 @@ typedef enum opcodeval {
 	Op_K_if,
 	Op_K_else,
 	Op_K_function,
-	Op_K_namespace,
 	Op_cond_exp,
 	Op_parens,
 	Op_final			/* sentry value, not legal */
@@ -929,7 +928,7 @@ typedef struct exp_instruction {
 #define condpair_left   d.di
 #define condpair_right  x.xi
 
-/* Op_K_namespace */
+/* Op_Rule, Op_Func */
 #define ns_name		d.name
 
 /* Op_store_var */
@@ -1033,7 +1032,7 @@ typedef struct srcfile {
 
 // structure for INSTRUCTION pool, needed mainly for debugger
 typedef struct instruction_pool {
-#define MAX_INSTRUCTION_ALLOC	3	// we don't call bcalloc with more than this
+#define MAX_INSTRUCTION_ALLOC	4	// we don't call bcalloc with more than this
 	struct instruction_mem_pool {
 		struct instruction_block *block_list;
 		INSTRUCTION *free_space;	// free location in active block

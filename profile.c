@@ -41,6 +41,8 @@ static void pp_push(int type, char *s, int flag);
 static NODE *pp_pop(void);
 static void print_comment(INSTRUCTION *pc, long in);
 const char *redir2str(int redirtype);
+static void pp_namespace(const char *name);
+static char *remove_namespace(char *name);
 
 #define pp_str	vname
 #define pp_len	sub.nodep.reserved
@@ -225,16 +227,21 @@ pprint(INSTRUCTION *startp, INSTRUCTION *endp, int flags)
 		switch (pc->opcode) {
 		case Op_rule:
 			/*
-			 * Rules are three instructions long.
+			 * Rules are four instructions long.
 			 * See append_rule in awkgram.y.
 			 * The first has the Rule Op Code, nexti etc.
 			 * The second, (pc + 1) has firsti and lasti:
 			 * 	the first/last ACTION instructions for this rule.
 			 * The third has first_line and last_line:
 			 * 	the first and last source line numbers.
+			 * The fourth holds the namespace name if there is one.
+			 *	(there should be one if we're in this file)
 			 */
 			source = pc->source_file;
 			rule = pc->in_rule;
+
+			assert(pc[3].ns_name != NULL);
+			pp_namespace(pc[3].ns_name);
 
 			if (rule != Rule) {
 				/* Allow for pre-non-rule-block comment  */
@@ -338,7 +345,7 @@ pprint(INSTRUCTION *startp, INSTRUCTION *endp, int flags)
 			case Node_var_new:
 			case Node_var_array:
 				if (m->vname != NULL)
-					pp_push(pc->opcode, m->vname, DONT_FREE);
+					pp_push(pc->opcode, remove_namespace(m->vname), DONT_FREE);
  				else
 					fatal(_("internal error: %s with null vname"),
 							nodetype2str(m->type));
@@ -1731,6 +1738,9 @@ pp_func(INSTRUCTION *pc, void *data ATTRIBUTE_UNUSED)
 			fprintf(prof_fp, _("\n\t# Functions, listed alphabetically\n"));
 	}
 
+	assert(pc[3].ns_name != NULL);
+	pp_namespace(pc[3].ns_name);
+
 	fp = pc->nexti->nexti;
 	func = pc->func_body;
 	fprintf(prof_fp, "\n");
@@ -1742,7 +1752,7 @@ pp_func(INSTRUCTION *pc, void *data ATTRIBUTE_UNUSED)
 	}
 
 	indent(pc->nexti->exec_count);
-	fprintf(prof_fp, "%s %s(", op2str(Op_K_function), func->vname);
+	fprintf(prof_fp, "%s %s(", op2str(Op_K_function), remove_namespace(func->vname));
 	pcount = func->param_cnt;
 	func_params = func->fparms;
 	for (j = 0; j < pcount; j++) {
@@ -1786,4 +1796,39 @@ redir2str(int redirtype)
 	if (redirtype < 0 || redirtype > redirect_twoway)
 		fatal(_("redir2str: unknown redirection type %d"), redirtype);
 	return redirtab[redirtype];
+}
+
+/* pp_namespace --- print @namespace directive */
+
+static void
+pp_namespace(const char *name)
+{
+	if (strcmp(current_namespace, name) == 0)
+		return;
+
+	current_namespace = name;
+
+	if (do_profile)
+		indent(SPACEOVER);
+
+	fprintf(prof_fp, "@namespace \"");
+	for (; *name != '\0' && *name != ':'; name++)
+		putc(*name, prof_fp);
+	fprintf(prof_fp, "\"\n\n");
+}
+
+/* remove_namespace --- remove leading namespace if that's the right thing to do */
+
+static char *
+remove_namespace(char *name)
+{
+	size_t len = strlen(current_namespace);
+
+	if (strncmp(current_namespace, name, len) == 0) {
+		char *ret = name + len;
+
+		return ret;
+	}
+
+	return name;
 }

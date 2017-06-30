@@ -94,7 +94,7 @@ lookup(const char *name, bool do_qualify)
 	NODE *tmp;
 	NODE *tables[5];	/* manual init below, for z/OS */
 	int i;
-	bool malloced;
+	bool malloced = false;
 
 	/* ``It's turtles, all the way down.'' */
 	tables[0] = param_table;	/* parameters shadow everything */
@@ -310,7 +310,7 @@ install(const char *name, NODE *parm, NODETYPE type)
 	NODE *table;
 	NODE *n_name;
 	NODE *prev;
-	bool malloced;
+	bool malloced = false;
 
 	name = fix_up_namespace(name, & malloced);
 

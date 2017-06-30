@@ -1,3 +1,25 @@
+2017-06-30         Arnold D. Robbins     <arnold@skeeve.com>
+
+	Add namespace info into Op_Rule and Op_Func.
+	Fix memory management problem.
+	The changes temporarily break the test suite.
+
+	* awk.h (MAX_INSTRUCTION_ALLOC): Increase to 4.
+	(Op_K_namespace): Remove, not needed.
+	* eval.c (optypetab): Remove Op_K_namespace.
+	* awkgram.y (make_pp_namespace): New function.
+	(yylex): For BEGIN etc, allocate 4 in the instruction.
+	(install_func): Save namespace name for Op_rule.
+	(append_rule): Save namespace name for Op_rule.
+	* debug.c (print_instruction): Print namespace for Op_rule, Op_func.
+	Remove Op_K_namespace.
+	* profile.c (pp_namespace, remove_namespace): New functions.
+	(pprint): Call `pp_namespace'. Use `remove_namespace' on variable
+	names.
+	(pp_func): Ditto on both.
+	* symbol.c (lookup): Initialize `malloced' to false.
+	(install): Ditto.
+
 2017-06-28         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awk.h [ns_name]: Add macro in preparation for use.
