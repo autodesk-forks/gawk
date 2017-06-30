@@ -1,3 +1,8 @@
+2017-06-30         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* Makefile.am (nsprof1): New test.
+	* nsprof1.awk, nsprof1.ok: New files.
+
 2017-06-27         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* Makefile.am (mbprintf5): Skip this test on Cygwin.

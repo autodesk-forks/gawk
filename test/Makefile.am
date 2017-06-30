@@ -737,6 +737,8 @@ EXTRA_DIST = \
 	noparms.ok \
 	nors.in \
 	nors.ok \
+	nsprof1.awk \
+	nsprof1.ok \
 	nulinsrc.awk \
 	nulinsrc.ok \
 	nulrsend.awk \
@@ -1258,6 +1260,7 @@ GAWK_EXT_TESTS = \
 	muldimposix \
 	nastyparm negtime next nondec nondec2 \
 	nonfatal1 nonfatal2 nonfatal3 \
+	nsprof1 \
 	patsplit posix printfbad1 printfbad2 printfbad3 printfbad4 printhuge procinfs \
 	profile0 profile1 profile2 profile3 profile4 profile5 profile6 profile7 \
 	profile8 profile9 profile10 pty1 \
@@ -2419,6 +2422,11 @@ fwtest3:
 sourcesplit:
 	@echo $@
 	@AWKPATH="$(srcdir)" $(AWK) --source='BEGIN { a = 5;' --source='print a }' >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
+	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+
+nsprof1:
+	@echo $@
+	@$(AWK) --pretty-print=_$@ -f "$(srcdir)"/$@.awk < /dev/null
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
 # Targets generated for other tests:
