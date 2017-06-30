@@ -463,7 +463,7 @@ main(int argc, char **argv)
 
 	if (current_namespace != awk_namespace) {
 		efree((char *) current_namespace);
-		current_namespace = awk_namespace;
+		current_namespace = "awk::";	// for pretty printer
 	}
 
 	install_builtins();

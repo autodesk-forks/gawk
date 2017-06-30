@@ -20,6 +20,15 @@
 	* symbol.c (lookup): Initialize `malloced' to false.
 	(install): Ditto.
 
+	Unbreak the test suite:
+
+	* awk.h (namespace_changed): Declare new boolean variable.
+	* awkgram.y (namespace_changed): Define new boolean variable.
+	(set_namespace): Set it to true when the namespace is changed.
+	* main.c (main): Set current_namespace to "awk::" for the pretty
+	printer.
+	* profile.c (pp_namespace): If namespace_changed is false, return.
+
 2017-06-28         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* awk.h [ns_name]: Add macro in preparation for use.

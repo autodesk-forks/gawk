@@ -1803,6 +1803,11 @@ redir2str(int redirtype)
 static void
 pp_namespace(const char *name)
 {
+	// Don't print the initial `@namespace "awk"' unless
+	// @namespace was used at some point in the program
+	if (! namespace_changed)
+		return;
+
 	if (strcmp(current_namespace, name) == 0)
 		return;
 

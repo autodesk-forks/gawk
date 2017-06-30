@@ -1212,6 +1212,7 @@ extern char casetable[];	/* for case-independent regexp matching */
 
 extern const char awk_namespace[];	/* "awk" */
 extern const char *current_namespace;
+extern bool namespace_changed;
 
 /* ------------------------- Runtime stack -------------------------------- */
 

@@ -147,6 +147,7 @@ extern NODE **args_array;
 
 const char awk_namespace[] = "awk";
 const char *current_namespace = awk_namespace;
+bool namespace_changed = false;
 
 static INSTRUCTION *rule_block[sizeof(ruletab)];
 
@@ -6498,6 +6499,8 @@ set_namespace(INSTRUCTION *ns)
 
 	ns->lextok = NULL;
 	bcfree(ns);
+
+	namespace_changed = true;
 
 	return true;
 }
