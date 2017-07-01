@@ -1,3 +1,8 @@
+2017-07-01         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* Makefile.am (nsprof2): New test.
+	* nsprof2.awk, nsprof2.ok: New files.
+
 2017-06-30         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* Makefile.am (nsprof1): New test.

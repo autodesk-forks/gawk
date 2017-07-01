@@ -42,7 +42,7 @@ static NODE *pp_pop(void);
 static void print_comment(INSTRUCTION *pc, long in);
 const char *redir2str(int redirtype);
 static void pp_namespace(const char *name);
-static char *remove_namespace(char *name);
+static char *adjust_namespace(char *name, bool *malloced);
 
 #define pp_str	vname
 #define pp_len	sub.nodep.reserved
@@ -344,9 +344,12 @@ pprint(INSTRUCTION *startp, INSTRUCTION *endp, int flags)
 			case Node_var:
 			case Node_var_new:
 			case Node_var_array:
-				if (m->vname != NULL)
-					pp_push(pc->opcode, remove_namespace(m->vname), DONT_FREE);
- 				else
+				if (m->vname != NULL) {
+					bool malloced = false;
+					char *name = adjust_namespace(m->vname, & malloced);
+
+					pp_push(pc->opcode, name, malloced ? CAN_FREE : DONT_FREE);
+				} else
 					fatal(_("internal error: %s with null vname"),
 							nodetype2str(m->type));
 				break;
@@ -1752,7 +1755,12 @@ pp_func(INSTRUCTION *pc, void *data ATTRIBUTE_UNUSED)
 	}
 
 	indent(pc->nexti->exec_count);
-	fprintf(prof_fp, "%s %s(", op2str(Op_K_function), remove_namespace(func->vname));
+	
+	bool malloced = false;
+	char *name = adjust_namespace(func->vname, & malloced);
+	fprintf(prof_fp, "%s %s(", op2str(Op_K_function), name);
+	if (malloced)
+		free(name);
 	pcount = func->param_cnt;
 	func_params = func->fparms;
 	for (j = 0; j < pcount; j++) {
@@ -1822,11 +1830,28 @@ pp_namespace(const char *name)
 	fprintf(prof_fp, "\"\n\n");
 }
 
-/* remove_namespace --- remove leading namespace if that's the right thing to do */
+/* adjust_namespace --- remove leading namespace or add leading awk:: */
 
 static char *
-remove_namespace(char *name)
+adjust_namespace(char *name, bool *malloced)
 {
+	*malloced = false;
+
+	// unadorned name from symbol table, add awk:: if not in awk:: n.s.
+	if (strchr(name, ':') == NULL &&
+	    current_namespace != awk_namespace &&	// can be equal if namespace never changed
+	    strcmp(current_namespace, "awk::") != 0) {
+		char *buf;
+		size_t len = 5 + strlen(name) + 1;
+
+		emalloc(buf, char *, len, "adjust_namespace");
+		sprintf(buf, "awk::%s", name);
+		*malloced = true;
+
+		return buf;
+	}
+
+	// qualifed name, remove <ns>:: if in that n.s.
 	size_t len = strlen(current_namespace);
 
 	if (strncmp(current_namespace, name, len) == 0) {

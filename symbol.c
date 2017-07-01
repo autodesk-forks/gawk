@@ -312,12 +312,16 @@ install(const char *name, NODE *parm, NODETYPE type)
 	NODE *prev;
 	bool malloced = false;
 
-	name = fix_up_namespace(name, & malloced);
-
-	if (malloced)
-		n_name = make_str_node(name, strlen(name), ALREADY_MALLOCED);
-	else
+	if (type == Node_param_list) {
 		n_name = make_string(name, strlen(name));
+	} else {
+		name = fix_up_namespace(name, & malloced);
+
+		if (malloced)
+			n_name = make_str_node(name, strlen(name), ALREADY_MALLOCED);
+		else
+			n_name = make_string(name, strlen(name));
+	}
 
 	table = symbol_table;
 

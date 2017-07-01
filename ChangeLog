@@ -1,3 +1,11 @@
+2017-07-01         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* symbol.c (install): Don't call fix_up_namespace if
+	installing parameters.
+	* profile.c (remove_namespace): Renamed to
+	(adjust_namespace): Make smarter and add boolean parameter for
+	if return was mallc'ed. Adjust calls.
+
 2017-06-30         Arnold D. Robbins     <arnold@skeeve.com>
 
 	Add namespace info into Op_Rule and Op_Func.
