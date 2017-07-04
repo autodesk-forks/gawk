@@ -20554,6 +20554,11 @@ The conventions presented in this @value{SECTION} are exactly
 that: conventions. You are not required to write your programs this
 way---we merely recommend that you do so.
 
+Beginning with version @strong{FIXME} 5.0, @command{gawk} provides
+a powerful mechanism for solving the problems described in this
+section: @dfn{namespaces}.  Namespaces and their use are described
+in detail in @ref{Namespaces}.
+
 @node General Functions
 @section General Programming
 
@@ -30489,7 +30494,8 @@ When profiling, we include the namespace in the @code{Op_Rule}
 and @code{Op_Func} instructions.  If the namespace
 is different from the previous
 one, output an @samp{@@namespace} statement.  For each identifier,
-if it starts with the current namespace, output only the simple part.
+if it starts with the current namespace, output only the simple part
+(DONE).
 
 @item Debugger:
 Simply print fully qualified names all the time. Maybe allow a
@@ -30500,7 +30506,8 @@ Have to be careful about all uppercase names though.
 @item How does this affect @code{@@include}?
 Basically @code{@@include} should push and pop the namespace. Each
 @code{@@include} saves the current namespace and starts over with
-namespace @samp{awk} until an @code{@@namespace} is seen.
+namespace @samp{awk} until an @code{@@namespace} is seen
+(DONE).
 
 @item Extension functions
 Revise the current macros to pass @code{"awk"} as the namespace
@@ -30513,6 +30520,73 @@ Actually, since we've decided that @code{awk} namespace variables and
 function are stored unadorned, the current macros that pass @code{""}
 would continue to work. Internally, we need to recognize @code{"awk"} and
 @emph{not} fully qualify the name before storing it in the symbol table.
+
+@item More on Extension Functions
+@enumerate 1
+@item
+Function and variables names need to be simple identifiers. This
+currently isn't checked in the code. Allowing both namespace + identifier
+and @code{foo::bar} would be confusing to document and to code and to test.
+
+@item
+Function and variable names cannot be reserved words. This also is currently
+not checked, since such things aren't accessable from normal @command{awk}
+code.  (They could be accessed indirectly via @code{FUNCTAB} and/or
+indirect function calls, but that is an accident of the current
+implementation and not necessarily a well-thought-out design decision.
+In fact, I think it's a bad idea.)
+
+@item
+Namespace names need to be valid identifiers. If we ever decide to
+limit such names to non-keywords, the same check needs to be applied.
+
+@item
+It's debatable if there should be a default namespace for a plugin.
+Should it be the plugin's name?  Probably not.
+
+@item
+Should the @code{ext_id}, which is currently just a null pointer,
+be made to point to something?  What would be carry around in it?
+@end enumerate
+
+@item Additional @command{gawk} built-ins
+Based on some discussion with Andrew Schorr, I'd like to find a way
+to change the additional @command{gawk} built-in functions, like
+@code{gensub()}, @code{strftime()}, etc. into ``pre-defined''
+extension functions in the @samp{awk} namespace.  This has some
+advantages:
+
+@enumerate 1
+@item
+It gives us room to add more built-ins without their being reserved
+words to the grammar.  This in turn means that:
+
+@item
+Users can define their own functions with the same name as @command{gawk}
+additions as long as they put them in their own namespace.
+@end enumerate
+
+Everybody wins!
+
+Note that POSIX-standard pre-defined @command{awk} names such as @command{length()}
+and @command{sub()} would remain reserved. The following would produce
+a syntax error:
+
+@example
+@@namespace "example"
+
+function gsub(str, pat, result) @{ @dots{} @}
+@end example
+
+@noindent
+Whereas this would not:
+
+@example
+@@namespace "example"
+
+function gensub(str, pat, result) @{ @dots{} @}
+@end example
+
 @end table
 
 @node Arbitrary Precision Arithmetic
