@@ -1,5 +1,10 @@
 2017-07-07         Arnold D. Robbins     <arnold@skeeve.com>
 
+	* awkgram.y (yyerror): Produce better diagnostics for source
+	files that are not whole syntactic units.
+
+2017-07-07         Arnold D. Robbins     <arnold@skeeve.com>
+
 	* gawapi.h: Bring descriptive comments up to date, minor edits.
 	* io.c: Add some initial comments to functions where they were missing.
 

@@ -4821,6 +4821,9 @@ yyerror(const char *m, ...)
 	char *buf;
 	int count;
 	static char end_of_file_line[] = "(END OF FILE)";
+	static char syntax_error[] = "syntax error";
+	static size_t syn_err_len = sizeof(syntax_error) - 1;
+	bool generic_error = (strncmp(m, syntax_error, syn_err_len) == 0);
 
 	print_included_from();
 
@@ -4851,7 +4854,11 @@ yyerror(const char *m, ...)
 		bp = thisline + strlen(thisline);
 	}
 
-	msg("%.*s", (int) (bp - thisline), thisline);
+	if (lexeof && mesg == NULL && generic_error) {
+		msg("%s", end_of_file_line);
+		mesg = _("source files / command-line arguments must contain complete functions or rules");
+	} else
+		msg("%.*s", (int) (bp - thisline), thisline);
 
 	va_start(args, m);
 	if (mesg == NULL)

@@ -251,6 +251,9 @@ EXTRA_DIST = \
 	dynlj.ok \
 	eofsplit.awk \
 	eofsplit.ok \
+	eofsrc1a.awk \
+	eofsrc1b.awk \
+	eofsrc1.ok \
 	errno.awk \
 	errno.in \
 	errno.ok \
@@ -1208,7 +1211,7 @@ BASIC_TESTS = \
 	callparam childin clobber closebad clsflnam compare compare2 concat1 concat2 \
 	concat3 concat4 concat5 convfmt \
 	datanonl defref delargv delarpm2 delarprm delfunc dfamb1 dfastress dynlj \
-	eofsplit exit2 exitval1 exitval2 exitval3 \
+	eofsplit eofsrc1 exit2 exitval1 exitval2 exitval3 \
 	fcall_exit fcall_exit2 fldchg fldchgnf fldterm fnamedat fnarray fnarray2 \
 	fnaryscl fnasgnm fnmisc fordel forref forsimp fsbs fsnul1 fsrs fsspcoln \
 	fstabplus funsemnl funsmnam funstack \
@@ -2434,6 +2437,11 @@ nsprof1:
 nsprof2:
 	@echo $@
 	@$(AWK) --pretty-print=_$@ -f "$(srcdir)"/$@.awk < /dev/null
+	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+
+eofsrc1:
+	@echo $@
+	@AWKPATH="$(srcdir)" $(AWK) -f "$(srcdir)"/$@a.awk -f "$(srcdir)"/$@b.awk >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
 # Targets generated for other tests:
