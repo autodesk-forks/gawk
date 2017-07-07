@@ -3,6 +3,12 @@
 	* awkgram.y (yyerror): Produce better diagnostics for source
 	files that are not whole syntactic units.
 
+	* gawkapi.c (api_sym_lookup, api_sym_update): Add namespace parameter.
+	Currently unused.
+	* gawkapi.h (api_sym_lookup, api_sym_update): Add namespace parameter.
+	(api_sym_lookup_ns, api_sym_update_ns): New macros.
+	(api_sym_lookup, api_sym_update): Adjust macro bodies.
+
 2017-07-07         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* gawapi.h: Bring descriptive comments up to date, minor edits.

@@ -675,6 +675,7 @@ node_to_awk_value(NODE *node, awk_value_t *val, awk_valtype_t wanted)
 
 static awk_bool_t
 api_sym_lookup(awk_ext_id_t id,
+		const char *namespace,
 		const char *name,
 		awk_valtype_t wanted,
 		awk_value_t *result)
@@ -720,6 +721,7 @@ api_sym_lookup_scalar(awk_ext_id_t id,
 
 static awk_bool_t
 api_sym_update(awk_ext_id_t id,
+		const char *namespace,
 		const char *name,
 		awk_value_t *value)
 {
