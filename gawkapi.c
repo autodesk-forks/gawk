@@ -335,17 +335,19 @@ api_unset_ERRNO(awk_ext_id_t id)
 
 static awk_bool_t
 api_add_ext_func(awk_ext_id_t id,
-		const char *namespace,
+		const char *name_space,
 		awk_ext_func_t *func)
 {
 	(void) id;
-	(void) namespace;
 
 	if (func == NULL)
 		return awk_false;
 
+	if (name_space == NULL)
+		fatal(_("add_ext_func: received NULL name_space parameter"));
+
 #ifdef DYNAMIC
-	return make_builtin(func);
+	return make_builtin(name_space, func);
 #else
 	return awk_false;
 #endif
@@ -675,7 +677,7 @@ node_to_awk_value(NODE *node, awk_value_t *val, awk_valtype_t wanted)
 
 static awk_bool_t
 api_sym_lookup(awk_ext_id_t id,
-		const char *namespace,
+		const char *name_space,
 		const char *name,
 		awk_valtype_t wanted,
 		awk_value_t *result)
@@ -721,7 +723,7 @@ api_sym_lookup_scalar(awk_ext_id_t id,
 
 static awk_bool_t
 api_sym_update(awk_ext_id_t id,
-		const char *namespace,
+		const char *name_space,
 		const char *name,
 		awk_value_t *value)
 {

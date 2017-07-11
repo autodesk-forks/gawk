@@ -1,5 +1,18 @@
 2017-07-11         Arnold D. Robbins     <arnold@skeeve.com>
 
+	Continue adding namespace support to the extension API.
+
+	* awk.h (make_builtin): Add leading name_space parameter.
+	* ext.c (make_builtin): Add leading name_space parameter.
+	Do the appropriate checking and building of a name before
+	installing in the symbol table.
+	* gawkapi.c (add_ext_func): Use name_space, not namespace.
+	Check that the parameter isn't NULL.
+	(api_sym_lookup, api_sym_update): Use name_space, not namespace.
+	* gawkapi.h: Use name_space, not namespace, everywhere.
+
+2017-07-11         Arnold D. Robbins     <arnold@skeeve.com>
+
 	* awk.h (is_letter): Add declaration.
 	* ext.c (is_valid_identifier): New function.
 	(make_builtin): Use is_valid_identifier instead of inline code.

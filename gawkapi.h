@@ -475,7 +475,7 @@ typedef struct gawk_api {
 	 * function itself receives this pointer and can modify what it
 	 * points to, thus it's not const.
 	 */
-	awk_bool_t (*api_add_ext_func)(awk_ext_id_t id, const char *namespace,
+	awk_bool_t (*api_add_ext_func)(awk_ext_id_t id, const char *name_space,
 			awk_ext_func_t *func);
 
 	/* Register an input parser; for opening files read-only */
@@ -603,7 +603,7 @@ typedef struct gawk_api {
 	 *	}
 	 */
 	awk_bool_t (*api_sym_lookup)(awk_ext_id_t id,
-				const char *namespace,
+				const char *name_space,
 				const char *name,
 				awk_valtype_t wanted,
 				awk_value_t *result);
@@ -615,7 +615,7 @@ typedef struct gawk_api {
 	 * Such an attempt returns false.
 	 */
 	awk_bool_t (*api_sym_update)(awk_ext_id_t id,
-				const char *namespace,
+				const char *name_space,
 				const char *name,
 				awk_value_t *value);
 
@@ -840,10 +840,10 @@ typedef struct gawk_api {
 #define sym_update(name, value) \
 	sym_update_ns("", name, value)
 
-#define sym_lookup_ns(namespace, name, wanted, result) \
-	(api->api_sym_lookup(ext_id, namespace, name, wanted, result))
-#define sym_update_ns(namespace, name, value) \
-	(api->api_sym_update(ext_id, namespace, name, value))
+#define sym_lookup_ns(name_space, name, wanted, result) \
+	(api->api_sym_lookup(ext_id, name_space, name, wanted, result))
+#define sym_update_ns(name_space, name, value) \
+	(api->api_sym_update(ext_id, name_space, name, value))
 
 #define sym_lookup_scalar(scalar_cookie, wanted, result) \
 	(api->api_sym_lookup_scalar(ext_id, scalar_cookie, wanted, result))
