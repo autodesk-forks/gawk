@@ -79,7 +79,7 @@ load_ext(const char *lib_name)
 
 /* is_valid_identifier --- return true if name is a valid simple identifier */
 
-static bool
+bool
 is_valid_identifier(const char *name)
 {
 	const char *sp = name;
@@ -115,11 +115,19 @@ make_builtin(const char *name_space, const awk_ext_func_t *funcinfo)
 
 	assert(name_space != NULL);
 	if (name_space[0] == '\0' || strcmp(name_space, awk_namespace) == 0) {
+		if (check_special(name) >= 0)
+			fatal(_("make_builtin: can't use gawk built-in `%s' as function name"), name);
+
 		f = lookup(name, false);
 		install_name = estrdup(name, strlen(name));
 	} else {
 		if (! is_valid_identifier(name_space))
 			return awk_false;
+
+		if (check_special(name_space) >= 0)
+			fatal(_("make_builtin: can't use gawk built-in `%s' as namespace name"), name_space);
+		if (check_special(name) >= 0)
+			fatal(_("make_builtin: can't use gawk built-in `%s' as function name"), name);
 
 		size_t len = strlen(name_space) + 2 + strlen(name) + 1;
 		char *buf;
@@ -131,6 +139,7 @@ make_builtin(const char *name_space, const awk_ext_func_t *funcinfo)
 	}
 
 	if (f != NULL) {
+		// found it, but it shouldn't be there if we want to install this function
 		if (f->type == Node_func) {
 			/* user-defined function */
 			fatal(_("make_builtin: can't redefine function `%s'"), name);
@@ -142,10 +151,7 @@ make_builtin(const char *name_space, const awk_ext_func_t *funcinfo)
 		} else
 			/* variable name etc. */
 			fatal(_("make_builtin: function name `%s' previously defined"), name);
-	} else if (check_special(name) >= 0)
-		fatal(_("make_builtin: can't use gawk built-in `%s' as function name"), name);
-	// else
-	// 	what to do if f == NULL?
+	}
 
 	if (count < 0)
 		fatal(_("make_builtin: negative argument count for function `%s'"),

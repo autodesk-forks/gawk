@@ -736,9 +736,10 @@ cleanup:
 		case Op_indirect_func_call:
 		case Op_func_call:
 		{
-			char *fname = pc->func_name;
 			char *pre;
  			int pcount;
+			bool malloced = false;
+			char *fname = adjust_namespace(pc->func_name, & malloced);
 
 			if (pc->opcode == Op_indirect_func_call)
 				pre = "@";
@@ -756,6 +757,8 @@ cleanup:
 				pp_free(t1);
 			}
 			pp_push(pc->opcode, str, CAN_FREE);
+			if (malloced)
+				efree((void *) fname);
 		}
 			break;
 

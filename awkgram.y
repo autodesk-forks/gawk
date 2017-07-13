@@ -1906,6 +1906,11 @@ direct_func_call
 					_("attempt to use non-function `%s' in function call"),
 						$1->func_name);
 			}
+			if (n != NULL && strcmp(n->stptr, $1->func_name) != 0) {
+				// replace xx with ns::xx
+				efree((void *) $1->func_name);
+				$1->func_name = estrdup(n->stptr, n->stlen = strlen(n->stptr));
+			}
 		}
 		param_sanity($3);
 		$1->opcode = Op_func_call;
@@ -4177,10 +4182,9 @@ retry:
 
 				// check for keyword, etc.
 				*end = '\0';
-				if (do_lint && (mid = check_special(tokstart)) >= 0) {
-					lintwarn(_("using reserved identifier `%s' as a namespace name may be confusing"), tokstart);
-					// but keep going anyway
-				}
+				if (check_special(tokstart) >= 0)
+					fatal(_("using reserved identifier `%s' as a namespace is not allowed"), tokstart);
+
 				*end = ':';
 			} else
 				pushback();
@@ -4924,7 +4928,7 @@ check_params(char *fname, int pcount, INSTRUCTION *list)
 			error_ln(p->source_line,
 				_("function `%s': can't use special variable `%s' as a function parameter"),
 					fname, name);
-		} else if (strchr(name, ':'))
+		} else if (strchr(name, ':') != NULL)
 			error_ln(p->source_line,
 				_("function `%s': parameter `%s' cannot contain a namespace"),
 					fname, name);
@@ -6448,7 +6452,7 @@ validate_qualified_name(char *token)
 	if ((cp = strchr(token, ':')) == NULL)
 		return;
 
-	if (cp[2] != '_' && ! is_alpha(cp[2]))
+	if (! is_letter(cp[2]))
 		error_ln(sourceline,
 				_("qualified identifier `%s' is badly formed"),
 				token);
@@ -6470,6 +6474,9 @@ validate_qualified_name(char *token)
 static bool
 set_namespace(INSTRUCTION *ns)
 {
+	if (ns == NULL)
+		return false;
+
 	if (do_traditional || do_posix) {
 		error_ln(ns->source_line, _("@namespace is a gawk extension"));
 		efree(ns->lextok);
@@ -6477,37 +6484,25 @@ set_namespace(INSTRUCTION *ns)
 		return false;
 	}
 
-	if (ns == NULL)
-		return false;
-
-	char *cp = ns->lextok;
-	if (*cp != '_' && ! is_alpha(*cp)) {
+	if (! is_valid_identifier(ns->lextok)) {
 		error_ln(ns->source_line, _("namespace name `%s' must meet identifier naming rules"), ns->lextok);
 		efree(ns->lextok);
 		bcfree(ns);
 		return false;
 	}
 
-	for (cp++; *cp != '\0'; cp++) {
-		if (! is_identchar(*cp)) {
-			error_ln(ns->source_line, _("namespace name `%s' must meet identifier naming rules"), ns->lextok);
-			efree(ns->lextok);
-			bcfree(ns);
-			return false;
-		}
-	}
+	int mid = check_special(ns->lextok);
 
-	if (do_lint) {
-		int mid = check_special(ns->lextok);
-
-		if (mid >= 0)
-			lintwarn(_("using reserved identifier `%s' as a namespace name may be confusing"),
-					ns->lextok);
-	}
-
-	if (strcmp(ns->lextok, current_namespace) == 0) {
+	if (mid >= 0) {
+		error_ln(ns->source_line, _("using reserved identifier `%s' as a namespace is not allowed"), ns->lextok);
 		efree(ns->lextok);
-	} else if (strcmp(ns->lextok, awk_namespace) == 0) {
+		bcfree(ns);
+		return false;
+	}
+
+	if (strcmp(ns->lextok, current_namespace) == 0)
+		efree(ns->lextok);
+	else if (strcmp(ns->lextok, awk_namespace) == 0) {
 		efree(ns->lextok);
 		current_namespace = awk_namespace;
 	} else {

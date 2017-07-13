@@ -1520,6 +1520,7 @@ extern void close_extensions(void);
 extern awk_bool_t make_builtin(const char *name_space, const awk_ext_func_t *);
 extern NODE *get_argument(int);
 extern NODE *get_actual_argument(NODE *, int, bool);
+extern bool is_valid_identifier(const char *name);
 #define get_scalar_argument(n, i)  get_actual_argument((n), (i), false)
 #define get_array_argument(n, i)   get_actual_argument((n), (i), true)
 #endif

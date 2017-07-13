@@ -1,3 +1,10 @@
+2017-07-13         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* testext.c (init_test_ext): Add installation of a variable and a
+	function in a namespace, and test using them.
+	(do_test_function): New function.
+	(ns_test_func): New function entry for it.
+
 2017-06-22         Andrew J. Schorr     <aschorr@telemetry-investments.com>
 
 	* rwarray.c (read_value): Use malloc instead of calloc, since

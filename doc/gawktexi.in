@@ -30291,11 +30291,14 @@ and functions in another.  This is especially important when using
 variable names to index the special @code{SYMTAB} array (@pxref{Auto-set}),
 and when making indirect function calls (@pxref{Indirect Calls}).
 
-It is a syntax error to use any @command{gawk} reserved word (such
+It is a fatal error to use any @command{gawk} reserved word (such
 as @code{if} or @code{for}), or the name of any built-in function
-(such as @code{sin()} or @code{gsub()}) as the second part of a
-fully qualified name.  Using such an identifier as a namespace
-name (currently) @emph{is} allowed, but produces a lint warning.
+(such as @code{sin()} or @code{gsub()}) as either part of a
+fully qualified name.@footnote{We hope to improve the implementation so
+that this restriction will apply only to standard @command{awk}
+reserved words and built-in functions. In this case, the additional
+built-in functions defined by @command{gawk} will become pre-loaded
+extension functions.}
 
 @command{gawk} pre-defined variable names may be used:
 @code{NF::NR} is valid, if possibly not all that useful.
@@ -30493,8 +30496,8 @@ Other notes for reviewers:
 When profiling, we include the namespace in the @code{Op_Rule}
 and @code{Op_Func} instructions.  If the namespace
 is different from the previous
-one, output an @samp{@@namespace} statement.  For each identifier,
-if it starts with the current namespace, output only the simple part
+one, we output an @samp{@@namespace} statement.  For each identifier,
+if it starts with the current namespace, we output only the simple part
 (DONE).
 
 @item Debugger:
@@ -30511,7 +30514,7 @@ namespace @samp{awk} until an @code{@@namespace} is seen
 
 @item Extension functions
 Revise the current macros to pass @code{"awk"} as the namespace
-argument and add new macros with @samp{_ns} or some such in the name that
+argument and add new macros with @samp{_ns} in the name that
 pass the namespace of the extension.  This preserves backwards
 compatibility at the source level while providing access to namespaces
 as needed.
@@ -30520,29 +30523,31 @@ Actually, since we've decided that @code{awk} namespace variables and
 function are stored unadorned, the current macros that pass @code{""}
 would continue to work. Internally, we need to recognize @code{"awk"} and
 @emph{not} fully qualify the name before storing it in the symbol table.
+(Both DONE).
 
 @item More on Extension Functions
 @enumerate 1
 @item
-Function and variables names need to be simple identifiers. This
-currently isn't checked in the code. Allowing both namespace + identifier
+Function and variables names need to be simple identifiers. This is now
+checked in the code. Allowing both namespace + identifier
 and @code{foo::bar} would be confusing to document and to code and to test.
 
 @item
-Function and variable names cannot be reserved words. This also is currently
-not checked, since such things aren't accessable from normal @command{awk}
-code.  (They could be accessed indirectly via @code{FUNCTAB} and/or
-indirect function calls, but that is an accident of the current
-implementation and not necessarily a well-thought-out design decision.
-In fact, I think it's a bad idea.)
+Function and variable names cannot be reserved words. This is now
+checked.
 
 @item
-Namespace names need to be valid identifiers. If we ever decide to
-limit such names to non-keywords, the same check needs to be applied.
+Namespace names need to be valid identifiers. They cannot be
+keywords or reserved function names.
 
 @item
 It's debatable if there should be a default namespace for a plugin.
 Should it be the plugin's name?  Probably not.
+
+So, the initial plugin API allowed for (but did not use) a namespace
+for installing functions, but didn't for variables. That's been fixed.
+
+@strong{FIXME}: Still need to document this in the extension chapter.
 
 @item
 Should the @code{ext_id}, which is currently just a null pointer,
@@ -30558,7 +30563,7 @@ advantages:
 
 @enumerate 1
 @item
-It gives us room to add more built-ins without their being reserved
+It gives us room to add more built-ins without they're being reserved
 words to the grammar.  This in turn means that:
 
 @item
@@ -30587,6 +30592,9 @@ Whereas this would not:
 function gensub(str, pat, result) @{ @dots{} @}
 @end example
 
+One challenge is the @code{snode()} function in @file{awkgram.y} which does certain ``fix-ups''
+for calls to certain built-in functions, including some of the additional @command{gawk}-specific ones.
+I still think this is all doable, but it will take some thought.
 @end table
 
 @node Arbitrary Precision Arithmetic

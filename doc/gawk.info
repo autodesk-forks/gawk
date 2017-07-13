@@ -22560,14 +22560,19 @@ using variable names to index the special 'SYMTAB' array (*note
 Auto-set::), and when making indirect function calls (*note Indirect
 Calls::).
 
-   It is a syntax error to use any 'gawk' reserved word (such as 'if' or
+   It is a fatal error to use any 'gawk' reserved word (such as 'if' or
 'for'), or the name of any built-in function (such as 'sin()' or
-'gsub()') as the second part of a fully qualified name.  Using such an
-identifier as a namespace name (currently) _is_ allowed, but produces a
-lint warning.
+'gsub()') as either part of a fully qualified name.(1)
 
    'gawk' pre-defined variable names may be used: 'NF::NR' is valid, if
 possibly not all that useful.
+
+   ---------- Footnotes ----------
+
+   (1) We hope to improve the implementation so that this restriction
+will apply only to standard 'awk' reserved words and built-in functions.
+In this case, the additional built-in functions defined by 'gawk' will
+become pre-loaded extension functions.
 
 
 File: gawk.info,  Node: Default Namespace,  Next: Changing The Namespace,  Prev: Qualified Names,  Up: Namespaces
@@ -22765,8 +22770,8 @@ Other notes for reviewers:
 Profiler:
      When profiling, we include the namespace in the 'Op_Rule' and
      'Op_Func' instructions.  If the namespace is different from the
-     previous one, output an '@namespace' statement.  For each
-     identifier, if it starts with the current namespace, output only
+     previous one, we output an '@namespace' statement.  For each
+     identifier, if it starts with the current namespace, we output only
      the simple part (DONE).
 
 Debugger:
@@ -22782,37 +22787,36 @@ How does this affect '@include'?
 
 Extension functions
      Revise the current macros to pass '"awk"' as the namespace argument
-     and add new macros with '_ns' or some such in the name that pass
-     the namespace of the extension.  This preserves backwards
-     compatibility at the source level while providing access to
-     namespaces as needed.
+     and add new macros with '_ns' in the name that pass the namespace
+     of the extension.  This preserves backwards compatibility at the
+     source level while providing access to namespaces as needed.
 
      Actually, since we've decided that 'awk' namespace variables and
      function are stored unadorned, the current macros that pass '""'
      would continue to work.  Internally, we need to recognize '"awk"'
      and _not_ fully qualify the name before storing it in the symbol
-     table.
+     table.  (Both DONE).
 
 More on Extension Functions
        1. Function and variables names need to be simple identifiers.
-          This currently isn't checked in the code.  Allowing both
-          namespace + identifier and 'foo::bar' would be confusing to
-          document and to code and to test.
+          This is now checked in the code.  Allowing both namespace +
+          identifier and 'foo::bar' would be confusing to document and
+          to code and to test.
 
-       2. Function and variable names cannot be reserved words.  This
-          also is currently not checked, since such things aren't
-          accessable from normal 'awk' code.  (They could be accessed
-          indirectly via 'FUNCTAB' and/or indirect function calls, but
-          that is an accident of the current implementation and not
-          necessarily a well-thought-out design decision.  In fact, I
-          think it's a bad idea.)
+       2. Function and variable names cannot be reserved words.  This is
+          now checked.
 
-       3. Namespace names need to be valid identifiers.  If we ever
-          decide to limit such names to non-keywords, the same check
-          needs to be applied.
+       3. Namespace names need to be valid identifiers.  They cannot be
+          keywords or reserved function names.
 
        4. It's debatable if there should be a default namespace for a
           plugin.  Should it be the plugin's name?  Probably not.
+
+          So, the initial plugin API allowed for (but did not use) a
+          namespace for installing functions, but didn't for variables.
+          That's been fixed.
+
+          *FIXME*: Still need to document this in the extension chapter.
 
        5. Should the 'ext_id', which is currently just a null pointer,
           be made to point to something?  What would be carry around in
@@ -22824,7 +22828,7 @@ Additional 'gawk' built-ins
      'gensub()', 'strftime()', etc.  into "pre-defined" extension
      functions in the 'awk' namespace.  This has some advantages:
 
-       1. It gives us room to add more built-ins without their being
+       1. It gives us room to add more built-ins without they're being
           reserved words to the grammar.  This in turn means that:
 
        2. Users can define their own functions with the same name as
@@ -22846,6 +22850,11 @@ Additional 'gawk' built-ins
           @namespace "example"
 
           function gensub(str, pat, result) { ... }
+
+     One challenge is the 'snode()' function in 'awkgram.y' which does
+     certain "fix-ups" for calls to certain built-in functions,
+     including some of the additional 'gawk'-specific ones.  I still
+     think this is all doable, but it will take some thought.
 
 
 File: gawk.info,  Node: Arbitrary Precision Arithmetic,  Next: Dynamic Extensions,  Prev: Namespaces,  Up: Top
@@ -36522,184 +36531,185 @@ Node: Debugging Summary910196
 Node: Namespaces911475
 Node: Global Namespace912161
 Node: Qualified Names913508
-Node: Default Namespace914888
-Node: Changing The Namespace915665
-Node: Internal Name Management916877
-Node: Namespace Example917898
-Node: Namespace Misc919967
-Node: Arbitrary Precision Arithmetic923709
-Node: Computer Arithmetic925196
-Ref: table-numeric-ranges928787
-Ref: Computer Arithmetic-Footnote-1929509
-Node: Math Definitions929566
-Ref: table-ieee-formats932880
-Ref: Math Definitions-Footnote-1933483
-Node: MPFR features933588
-Node: FP Math Caution935305
-Ref: FP Math Caution-Footnote-1936377
-Node: Inexactness of computations936746
-Node: Inexact representation937706
-Node: Comparing FP Values939066
-Node: Errors accumulate940148
-Node: Getting Accuracy941581
-Node: Try To Round944291
-Node: Setting precision945190
-Ref: table-predefined-precision-strings945887
-Node: Setting the rounding mode947717
-Ref: table-gawk-rounding-modes948091
-Ref: Setting the rounding mode-Footnote-1951499
-Node: Arbitrary Precision Integers951678
-Ref: Arbitrary Precision Integers-Footnote-1956583
-Node: Checking for MPFR956732
-Node: POSIX Floating Point Problems958029
-Ref: POSIX Floating Point Problems-Footnote-1961900
-Node: Floating point summary961938
-Node: Dynamic Extensions964128
-Node: Extension Intro965681
-Node: Plugin License966947
-Node: Extension Mechanism Outline967744
-Ref: figure-load-extension968183
-Ref: figure-register-new-function969748
-Ref: figure-call-new-function970840
-Node: Extension API Description972902
-Node: Extension API Functions Introduction974544
-Node: General Data Types979878
-Ref: General Data Types-Footnote-1987083
-Node: Memory Allocation Functions987382
-Ref: Memory Allocation Functions-Footnote-1990534
-Node: Constructor Functions990633
-Node: Registration Functions993632
-Node: Extension Functions994317
-Node: Exit Callback Functions999530
-Node: Extension Version String1000780
-Node: Input Parsers1001443
-Node: Output Wrappers1014150
-Node: Two-way processors1018662
-Node: Printing Messages1020927
-Ref: Printing Messages-Footnote-11022098
-Node: Updating ERRNO1022251
-Node: Requesting Values1022990
-Ref: table-value-types-returned1023727
-Node: Accessing Parameters1024663
-Node: Symbol Table Access1025898
-Node: Symbol table by name1026410
-Node: Symbol table by cookie1028199
-Ref: Symbol table by cookie-Footnote-11032384
-Node: Cached values1032448
-Ref: Cached values-Footnote-11035984
-Node: Array Manipulation1036075
-Ref: Array Manipulation-Footnote-11037166
-Node: Array Data Types1037203
-Ref: Array Data Types-Footnote-11039861
-Node: Array Functions1039953
-Node: Flattening Arrays1044352
-Node: Creating Arrays1051293
-Node: Redirection API1056062
-Node: Extension API Variables1058904
-Node: Extension Versioning1059537
-Ref: gawk-api-version1059974
-Node: Extension API Informational Variables1061702
-Node: Extension API Boilerplate1062766
-Node: Changes from API V11066628
-Node: Finding Extensions1067288
-Node: Extension Example1067847
-Node: Internal File Description1068645
-Node: Internal File Ops1072725
-Ref: Internal File Ops-Footnote-11084125
-Node: Using Internal File Ops1084265
-Ref: Using Internal File Ops-Footnote-11086648
-Node: Extension Samples1086922
-Node: Extension Sample File Functions1088451
-Node: Extension Sample Fnmatch1096100
-Node: Extension Sample Fork1097587
-Node: Extension Sample Inplace1098805
-Node: Extension Sample Ord1102022
-Node: Extension Sample Readdir1102858
-Ref: table-readdir-file-types1103747
-Node: Extension Sample Revout1104552
-Node: Extension Sample Rev2way1105141
-Node: Extension Sample Read write array1105881
-Node: Extension Sample Readfile1107823
-Node: Extension Sample Time1108918
-Node: Extension Sample API Tests1110266
-Node: gawkextlib1110758
-Node: Extension summary1113205
-Node: Extension Exercises1116907
-Node: Language History1118405
-Node: V7/SVR3.11120061
-Node: SVR41122213
-Node: POSIX1123647
-Node: BTL1125026
-Node: POSIX/GNU1125755
-Node: Feature History1131647
-Node: Common Extensions1146071
-Node: Ranges and Locales1147354
-Ref: Ranges and Locales-Footnote-11151970
-Ref: Ranges and Locales-Footnote-21151997
-Ref: Ranges and Locales-Footnote-31152232
-Node: Contributors1152453
-Node: History summary1158013
-Node: Installation1159393
-Node: Gawk Distribution1160337
-Node: Getting1160821
-Node: Extracting1161782
-Node: Distribution contents1163420
-Node: Unix Installation1169762
-Node: Quick Installation1170444
-Node: Shell Startup Files1172858
-Node: Additional Configuration Options1173947
-Node: Configuration Philosophy1175936
-Node: Non-Unix Installation1178305
-Node: PC Installation1178765
-Node: PC Binary Installation1179603
-Node: PC Compiling1180038
-Node: PC Using1181155
-Node: Cygwin1184200
-Node: MSYS1184970
-Node: VMS Installation1185471
-Node: VMS Compilation1186262
-Ref: VMS Compilation-Footnote-11187491
-Node: VMS Dynamic Extensions1187549
-Node: VMS Installation Details1189234
-Node: VMS Running1191487
-Node: VMS GNV1195766
-Node: VMS Old Gawk1196501
-Node: Bugs1196972
-Node: Bug address1197635
-Node: Usenet1200032
-Node: Maintainers1200809
-Node: Other Versions1202185
-Node: Installation summary1208769
-Node: Notes1209804
-Node: Compatibility Mode1210669
-Node: Additions1211451
-Node: Accessing The Source1212376
-Node: Adding Code1213811
-Node: New Ports1220029
-Node: Derived Files1224517
-Ref: Derived Files-Footnote-11230002
-Ref: Derived Files-Footnote-21230037
-Ref: Derived Files-Footnote-31230635
-Node: Future Extensions1230749
-Node: Implementation Limitations1231407
-Node: Extension Design1232590
-Node: Old Extension Problems1233744
-Ref: Old Extension Problems-Footnote-11235262
-Node: Extension New Mechanism Goals1235319
-Ref: Extension New Mechanism Goals-Footnote-11238683
-Node: Extension Other Design Decisions1238872
-Node: Extension Future Growth1240985
-Node: Old Extension Mechanism1241821
-Node: Notes summary1243584
-Node: Basic Concepts1244766
-Node: Basic High Level1245447
-Ref: figure-general-flow1245729
-Ref: figure-process-flow1246414
-Ref: Basic High Level-Footnote-11249715
-Node: Basic Data Typing1249900
-Node: Glossary1253228
-Node: Copying1285175
-Node: GNU Free Documentation License1322714
-Node: Index1347832
+Ref: Qualified Names-Footnote-1914821
+Node: Default Namespace915075
+Node: Changing The Namespace915852
+Node: Internal Name Management917064
+Node: Namespace Example918085
+Node: Namespace Misc920154
+Node: Arbitrary Precision Arithmetic924001
+Node: Computer Arithmetic925488
+Ref: table-numeric-ranges929079
+Ref: Computer Arithmetic-Footnote-1929801
+Node: Math Definitions929858
+Ref: table-ieee-formats933172
+Ref: Math Definitions-Footnote-1933775
+Node: MPFR features933880
+Node: FP Math Caution935597
+Ref: FP Math Caution-Footnote-1936669
+Node: Inexactness of computations937038
+Node: Inexact representation937998
+Node: Comparing FP Values939358
+Node: Errors accumulate940440
+Node: Getting Accuracy941873
+Node: Try To Round944583
+Node: Setting precision945482
+Ref: table-predefined-precision-strings946179
+Node: Setting the rounding mode948009
+Ref: table-gawk-rounding-modes948383
+Ref: Setting the rounding mode-Footnote-1951791
+Node: Arbitrary Precision Integers951970
+Ref: Arbitrary Precision Integers-Footnote-1956875
+Node: Checking for MPFR957024
+Node: POSIX Floating Point Problems958321
+Ref: POSIX Floating Point Problems-Footnote-1962192
+Node: Floating point summary962230
+Node: Dynamic Extensions964420
+Node: Extension Intro965973
+Node: Plugin License967239
+Node: Extension Mechanism Outline968036
+Ref: figure-load-extension968475
+Ref: figure-register-new-function970040
+Ref: figure-call-new-function971132
+Node: Extension API Description973194
+Node: Extension API Functions Introduction974836
+Node: General Data Types980170
+Ref: General Data Types-Footnote-1987375
+Node: Memory Allocation Functions987674
+Ref: Memory Allocation Functions-Footnote-1990826
+Node: Constructor Functions990925
+Node: Registration Functions993924
+Node: Extension Functions994609
+Node: Exit Callback Functions999822
+Node: Extension Version String1001072
+Node: Input Parsers1001735
+Node: Output Wrappers1014442
+Node: Two-way processors1018954
+Node: Printing Messages1021219
+Ref: Printing Messages-Footnote-11022390
+Node: Updating ERRNO1022543
+Node: Requesting Values1023282
+Ref: table-value-types-returned1024019
+Node: Accessing Parameters1024955
+Node: Symbol Table Access1026190
+Node: Symbol table by name1026702
+Node: Symbol table by cookie1028491
+Ref: Symbol table by cookie-Footnote-11032676
+Node: Cached values1032740
+Ref: Cached values-Footnote-11036276
+Node: Array Manipulation1036367
+Ref: Array Manipulation-Footnote-11037458
+Node: Array Data Types1037495
+Ref: Array Data Types-Footnote-11040153
+Node: Array Functions1040245
+Node: Flattening Arrays1044644
+Node: Creating Arrays1051585
+Node: Redirection API1056354
+Node: Extension API Variables1059196
+Node: Extension Versioning1059829
+Ref: gawk-api-version1060266
+Node: Extension API Informational Variables1061994
+Node: Extension API Boilerplate1063058
+Node: Changes from API V11066920
+Node: Finding Extensions1067580
+Node: Extension Example1068139
+Node: Internal File Description1068937
+Node: Internal File Ops1073017
+Ref: Internal File Ops-Footnote-11084417
+Node: Using Internal File Ops1084557
+Ref: Using Internal File Ops-Footnote-11086940
+Node: Extension Samples1087214
+Node: Extension Sample File Functions1088743
+Node: Extension Sample Fnmatch1096392
+Node: Extension Sample Fork1097879
+Node: Extension Sample Inplace1099097
+Node: Extension Sample Ord1102314
+Node: Extension Sample Readdir1103150
+Ref: table-readdir-file-types1104039
+Node: Extension Sample Revout1104844
+Node: Extension Sample Rev2way1105433
+Node: Extension Sample Read write array1106173
+Node: Extension Sample Readfile1108115
+Node: Extension Sample Time1109210
+Node: Extension Sample API Tests1110558
+Node: gawkextlib1111050
+Node: Extension summary1113497
+Node: Extension Exercises1117199
+Node: Language History1118697
+Node: V7/SVR3.11120353
+Node: SVR41122505
+Node: POSIX1123939
+Node: BTL1125318
+Node: POSIX/GNU1126047
+Node: Feature History1131939
+Node: Common Extensions1146363
+Node: Ranges and Locales1147646
+Ref: Ranges and Locales-Footnote-11152262
+Ref: Ranges and Locales-Footnote-21152289
+Ref: Ranges and Locales-Footnote-31152524
+Node: Contributors1152745
+Node: History summary1158305
+Node: Installation1159685
+Node: Gawk Distribution1160629
+Node: Getting1161113
+Node: Extracting1162074
+Node: Distribution contents1163712
+Node: Unix Installation1170054
+Node: Quick Installation1170736
+Node: Shell Startup Files1173150
+Node: Additional Configuration Options1174239
+Node: Configuration Philosophy1176228
+Node: Non-Unix Installation1178597
+Node: PC Installation1179057
+Node: PC Binary Installation1179895
+Node: PC Compiling1180330
+Node: PC Using1181447
+Node: Cygwin1184492
+Node: MSYS1185262
+Node: VMS Installation1185763
+Node: VMS Compilation1186554
+Ref: VMS Compilation-Footnote-11187783
+Node: VMS Dynamic Extensions1187841
+Node: VMS Installation Details1189526
+Node: VMS Running1191779
+Node: VMS GNV1196058
+Node: VMS Old Gawk1196793
+Node: Bugs1197264
+Node: Bug address1197927
+Node: Usenet1200324
+Node: Maintainers1201101
+Node: Other Versions1202477
+Node: Installation summary1209061
+Node: Notes1210096
+Node: Compatibility Mode1210961
+Node: Additions1211743
+Node: Accessing The Source1212668
+Node: Adding Code1214103
+Node: New Ports1220321
+Node: Derived Files1224809
+Ref: Derived Files-Footnote-11230294
+Ref: Derived Files-Footnote-21230329
+Ref: Derived Files-Footnote-31230927
+Node: Future Extensions1231041
+Node: Implementation Limitations1231699
+Node: Extension Design1232882
+Node: Old Extension Problems1234036
+Ref: Old Extension Problems-Footnote-11235554
+Node: Extension New Mechanism Goals1235611
+Ref: Extension New Mechanism Goals-Footnote-11238975
+Node: Extension Other Design Decisions1239164
+Node: Extension Future Growth1241277
+Node: Old Extension Mechanism1242113
+Node: Notes summary1243876
+Node: Basic Concepts1245058
+Node: Basic High Level1245739
+Ref: figure-general-flow1246021
+Ref: figure-process-flow1246706
+Ref: Basic High Level-Footnote-11250007
+Node: Basic Data Typing1250192
+Node: Glossary1253520
+Node: Copying1285467
+Node: GNU Free Documentation License1323006
+Node: Index1348124
 
 End Tag Table
