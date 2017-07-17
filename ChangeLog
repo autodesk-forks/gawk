@@ -1,5 +1,10 @@
 2017-07-17         Arnold D. Robbins     <arnold@skeeve.com>
 
+	* awkgram.y [direct_func_call]: Save full variable name for
+	indirect calls too.
+
+2017-07-17         Arnold D. Robbins     <arnold@skeeve.com>
+
 	* awkgram.y [non_post_simp_exp]: Merge LEX_BUILTIN and
 	LEX_LENGTH expansions.
 	(lookup_builtin): Move MPFR test to after test for sub builtin.

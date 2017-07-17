@@ -1911,6 +1911,19 @@ direct_func_call
 				efree((void *) $1->func_name);
 				$1->func_name = estrdup(n->stptr, n->stlen = strlen(n->stptr));
 			}
+		} else {
+			const char *name = $1->func_name;
+			if (current_namespace != awk_namespace && strchr(name, ':') == NULL) {
+				size_t len = strlen(current_namespace) + 2 + strlen(name) + 1;
+				char *buf;
+
+				emalloc(buf, char *, len, "direct_func_call");
+				sprintf(buf, "%s::%s", current_namespace, name);
+
+				efree((void *) $1->func_name);
+				$1->func_name = buf;
+
+			}
 		}
 		param_sanity($3);
 		$1->opcode = Op_func_call;
