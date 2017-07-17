@@ -30386,17 +30386,31 @@ function compute()        @ii{This is really} report::compute()
 @node Namespace Example
 @section Namespace Example
 
+The following example is a revised version of the suite of routines
+developed in @ref{Passwd Functions}.
+
+The formulation here, due mainly to Andrew Schorr, is rather elegant.
+It places all of the implementation functions and variables in the
+@code{passwd} namespace, while leaving the main interface functions
+in the default @code{awk} namespace.
+
 @example
-# FIXME: fix this up for real, dates etc
-#
-# passwd.awk --- access password file information
+@c file eg/lib/ns_passwd.awk
+# ns_passwd.awk --- access password file information
+@c endfile
+@ignore
+@c file eg/lib/ns_passwd.awk
 #
 # Arnold Robbins, arnold@@skeeve.com, Public Domain
 # May 1993
 # Revised October 2000
 # Revised December 2010
 #
-# Reworked for namespaces May 2017
+# Reworked for namespaces June 2017, with help from
+# Andrew J.@: Schorr, aschorr@@telemetry-investments.com
+@c endfile
+@end ignore
+@c file eg/lib/ns_passwd.awk
 
 @@namespace "passwd"
 
@@ -30436,19 +30450,19 @@ function Init(    oldfs, oldrs, olddol0, pwcat, using_fw, using_fpat)
     $0 = olddol0
 @}
 
-function Getpwnam(name)
+function awk::getpwnam(name)
 @{
     Init()
     return Byname[name]
 @}
 
-function Getpwuid(uid)
+function awk::getpwuid(uid)
 @{
     Init()
     return Byuid[uid]
 @}
 
-function Getpwent()
+function awk::getpwent()
 @{
     Init()
     if (Count < Total)
@@ -30456,35 +30470,16 @@ function Getpwent()
     return ""
 @}
 
-function Endpwent()
+function awk::endpwent()
 @{
     Count = 0
 @}
-
-# Compatibility:
-
-@@namespace "awk"
-
-function getpwnam(name)
-@{
-    return passwd::Getpwnam(name)
-@}
-
-function getpwuid(uid)
-@{
-    return passwd::Getpwuid(uid)
-@}
-
-function getpwent()
-@{
-    return passwd::Getpwent()
-@}
-
-function endpwent()
-@{
-    passwd::Endpwent()
-@}
+@c endfile
 @end example
+
+As you can see, this version also follows the convention mentioned in
+@ref{Library Names}, whereby global variable and function names
+start with a capital letter.
 
 @node Namespace Misc
 @section Miscellaneous Notes
@@ -30546,8 +30541,6 @@ Should it be the plugin's name?  Probably not.
 
 So, the initial plugin API allowed for (but did not use) a namespace
 for installing functions, but didn't for variables. That's been fixed.
-
-@strong{FIXME}: Still need to document this in the extension chapter.
 
 @item
 Should the @code{ext_id}, which is currently just a null pointer,
@@ -33454,6 +33447,15 @@ Return true if the actual type matches @code{wanted}, and false otherwise.
 In the latter case, @code{result->val_type} indicates the actual type
 (@pxref{table-value-types-returned}).
 
+@item awk_bool_t sym_lookup_ns(const char *name,
+@itemx @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ const char *name_space,
+@itemx @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ awk_valtype_t wanted,
+@itemx @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ @ awk_value_t *result);
+This is like @code{sym_lookup()}, but the @code{name_space} parameter allows you
+to specify which namespace @code{name} is part of.  @code{name_space} cannot be
+@code{NULL}. If it is @code{""} or @code{"awk}, then @code{name} is searched
+for in the default @code{awk} namespace.
+
 @item awk_bool_t sym_update(const char *name, awk_value_t *value);
 Update the variable named by the string @code{name}, which is a regular
 C string.  The variable is added to @command{gawk}'s symbol table
@@ -33463,6 +33465,12 @@ Changing types (scalar to array or vice versa) of an existing variable
 is @emph{not} allowed, nor may this routine be used to update an array.
 This routine cannot be used to update any of the predefined
 variables (such as @code{ARGC} or @code{NF}).
+
+@item awk_bool_t sym_update_ns(const char *name_space, const char *name, awk_value_t *value);
+This is like @code{sym_update()}, but the @code{name_space} parameter allows you
+to specify which namespace @code{name} is part of.  @code{name_space} cannot be
+@code{NULL}. If it is @code{""} or @code{"awk}, then @code{name} is searched
+for in the default @code{awk} namespace.
 @end table
 
 An extension can look up the value of @command{gawk}'s special variables.
