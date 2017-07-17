@@ -1,5 +1,28 @@
 2017-07-17         Arnold D. Robbins     <arnold@skeeve.com>
 
+	Allow identifiers that are gawk extensions to be used as plain
+	identifiers outside the "awk" namespace. Make the real
+	builtins available via awk::builtin_name(). Standard awk reserved
+	words and builtin functions remain reserved.
+
+	* awk.h (getfname): Add boolean parameter to prepend namespace
+	or not.
+	* awkgram.y (check_qualified_name): New function. Enforces that
+	standard awk reserved words and functions aren't allowed, and
+	allows awk::gawk_extension from non-"awk" namespace.
+	[direct_func_call]: Always convert name to fully qualified.
+	(getfname): Add boolean parameter to prepend namespace
+	or not. Adjust code.
+	(yylex): Separate out validation code from code building the
+	NAME token.  Use check_qualified_name to decide if token is
+	special instead of check_special.
+	(validate_qualified_name): Just checks the form of the fully
+	qualified name.
+	* debug.c (print_instruction): Update call to getfname.
+	* profile.c (pprint): Update call to getfname.
+
+2017-07-17         Arnold D. Robbins     <arnold@skeeve.com>
+
 	* awkgram.y [direct_func_call]: Save full variable name for
 	indirect calls too.
 
@@ -37,7 +60,7 @@
 	instead of inline code.  Disallow using reserved words as namespace
 	names.
 	* ext.c (is_valid_identifier): No longer static.
-	(make_builtin): Check name and namespace gainst reserved words and
+	(make_builtin): Check name and namespace against reserved words and
 	fatal error if found.
 	* gawkapi.c (ns_lookup): New function to look for variables
 	in namespaces.

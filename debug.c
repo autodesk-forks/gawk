@@ -3952,7 +3952,7 @@ print_instruction(INSTRUCTION *pc, Func_print print_func, FILE *fp, int in_dump)
 		break;
 
 	case Op_builtin:
-		print_func(fp, "%s [arg_count = %ld]\n", getfname(pc->builtin),
+		print_func(fp, "%s [arg_count = %ld]\n", getfname(pc->builtin, false),
 						pc->expr_count);
 		break;
 

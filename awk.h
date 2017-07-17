@@ -1413,7 +1413,7 @@ extern int parse_program(INSTRUCTION **pcode);
 extern void track_ext_func(const char *name);
 extern void dump_funcs(void);
 extern void dump_vars(const char *fname);
-extern const char *getfname(NODE *(*)(int));
+extern const char *getfname(NODE *(*)(int), bool prepend_awk);
 extern NODE *stopme(int nargs);
 extern void shadow_funcs(void);
 extern int check_special(const char *name);

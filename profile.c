@@ -613,9 +613,10 @@ cleanup:
 		case Op_ext_builtin:
 		{
 			const char *fname;
-			if (pc->opcode == Op_builtin)
-				fname = getfname(pc->builtin);
-			else
+			if (pc->opcode == Op_builtin) {
+				bool prepend_awk = (current_namespace != awk_namespace && strcmp(current_namespace, "awk::") != 0);
+				fname = getfname(pc->builtin, prepend_awk);
+			} else
 				fname = (pc + 1)->func_name;
 			if (fname != NULL) {
 				if (pc->expr_count > 0) {

@@ -60,6 +60,7 @@ static void next_sourcefile(void);
 static char *tokexpand(void);
 static NODE *set_profile_text(NODE *n, const char *str, size_t len);
 static void validate_qualified_name(char *token);
+static int check_qualified_name(char *token);
 static char *make_pp_namespace();
 
 #define instruction(t)	bcalloc(t, 1, 0)
@@ -1897,6 +1898,18 @@ direct_func_call
 	: FUNC_CALL '(' opt_fcall_expression_list r_paren
 	  {
 		NODE *n;
+		const char *name = $1->func_name;
+
+		if (current_namespace != awk_namespace && strchr(name, ':') == NULL) {
+			size_t len = strlen(current_namespace) + 2 + strlen(name) + 1;
+			char *buf;
+
+			emalloc(buf, char *, len, "direct_func_call");
+			sprintf(buf, "%s::%s", current_namespace, name);
+
+			efree((void *) $1->func_name);
+			$1->func_name = buf;
+		}
 
 		if (! at_seen) {
 			n = lookup($1->func_name, true);
@@ -1906,25 +1919,8 @@ direct_func_call
 					_("attempt to use non-function `%s' in function call"),
 						$1->func_name);
 			}
-			if (n != NULL && strcmp(n->stptr, $1->func_name) != 0) {
-				// replace xx with ns::xx
-				efree((void *) $1->func_name);
-				$1->func_name = estrdup(n->stptr, n->stlen = strlen(n->stptr));
-			}
-		} else {
-			const char *name = $1->func_name;
-			if (current_namespace != awk_namespace && strchr(name, ':') == NULL) {
-				size_t len = strlen(current_namespace) + 2 + strlen(name) + 1;
-				char *buf;
-
-				emalloc(buf, char *, len, "direct_func_call");
-				sprintf(buf, "%s::%s", current_namespace, name);
-
-				efree((void *) $1->func_name);
-				$1->func_name = buf;
-
-			}
 		}
+
 		param_sanity($3);
 		$1->opcode = Op_func_call;
 		$1->func_body = NULL;
@@ -2232,15 +2228,22 @@ static int cur_ring_idx;
 /* getfname --- return name of a builtin function (for pretty printing) */
 
 const char *
-getfname(NODE *(*fptr)(int))
+getfname(NODE *(*fptr)(int), bool prepend_awk)
 {
 	int i, j;
+	static char buf[100];
 
 	j = sizeof(tokentab) / sizeof(tokentab[0]);
 	/* linear search, no other way to do it */
-	for (i = 0; i < j; i++)
-		if (tokentab[i].ptr == fptr || tokentab[i].ptr2 == fptr)
+	for (i = 0; i < j; i++) {
+		if (tokentab[i].ptr == fptr || tokentab[i].ptr2 == fptr) {
+			if (prepend_awk && (tokentab[i].flags & GAWKX) != 0) {
+				sprintf(buf, "awk::%s", tokentab[i].operator);
+				return buf;
+			}
 			return tokentab[i].operator;
+		}
+	}
 
 	return NULL;
 }
@@ -4187,18 +4190,9 @@ retry:
 			int peek = nextc(true);
 
 			if (peek == ':') {	// saw identifier::
-				char *end = tok;
-
 				tokadd(c);
 				tokadd(c);
 				c = nextc(true);
-
-				// check for keyword, etc.
-				*end = '\0';
-				if (check_special(tokstart) >= 0)
-					fatal(_("using reserved identifier `%s' as a namespace is not allowed"), tokstart);
-
-				*end = ':';
 			} else
 				pushback();
 				// then continue around the loop, c == ':'
@@ -4210,7 +4204,7 @@ retry:
 	validate_qualified_name(tokstart);
 
 	/* See if it is a special token. */
-	if ((mid = check_special(tokstart)) >= 0) {
+	if ((mid = check_qualified_name(tokstart)) >= 0) {
 		static int warntab[sizeof(tokentab) / sizeof(tokentab[0])];
 		int class = tokentab[mid].class;
 
@@ -6462,6 +6456,7 @@ validate_qualified_name(char *token)
 {
 	char *cp, *cp2;
 
+	// no colon, by definition it's well formed
 	if ((cp = strchr(token, ':')) == NULL)
 		return;
 
@@ -6474,12 +6469,63 @@ validate_qualified_name(char *token)
 		error_ln(sourceline,
 			_("identifier `%s': namespace separator can only appear once in a qualified name"),
 			token);
+}
 
-	cp += 2;	// skip past ::
-	int mid = check_special(cp);
-	if (mid >= 0)
-		error_ln(sourceline,
-				_("using reserved identifier `%s' as second component of a qualified name is not allowed"), cp);
+/* check_qualified_name --- decide if a name is special or not */
+
+static int
+check_qualified_name(char *token)
+{
+	char *cp;
+
+	if ((cp = strchr(token, ':')) == NULL && current_namespace == awk_namespace)
+		return check_special(token);
+
+	/*
+	 * Now it's more complicated.  Here are the rules.
+	 *
+	 * 1. Namespace name cannot be a standard awk reserved word or function.
+	 * 2. Subordinate part of the name cannot be standard awk reserved word or function.
+	 * 3. If namespace part is explicitly "awk", return result of check_special().
+	 * 4. Else return -1 (gawk extensions allowed, we check standard awk in step 2).
+	 */
+
+	const struct token *tok;
+	int i;
+	if (cp == NULL) {	// namespace not awk, but a simple identifier
+		i = check_special(token);
+		if (i < 0)
+			return i;
+
+		tok = & tokentab[i];
+		if ((tok->flags & GAWKX) != 0 && tok->class == LEX_BUILTIN)
+			return -1;
+		else
+			return i;
+	}
+
+	char *ns, *end, *subname;
+	ns = token;
+	*(end = cp) = '\0';	// temporarily turn it into standalone string
+	subname = end + 2;
+
+	// First check the namespace part
+	i = check_special(ns);
+	if (i >= 0 && (tokentab[i].flags & GAWKX) == 0)
+		fatal(_("using reserved identifier `%s' as a namespace is not allowed"), ns);
+
+	// Now check the subordinate part
+	i = check_special(subname);
+	if (i >= 0 && (tokentab[i].flags & GAWKX) == 0 && strcmp(ns, "awk") != 0)
+		fatal(_("using reserved identifier `%s' as second component of a qualified name is not allowed"), subname);
+
+	if (strcmp(ns, "awk") == 0)
+		i = check_special(subname);
+	else
+		i = -1;
+
+	*end = ':';
+	return i;
 }
 
 /* set_namespace --- change the current namespace */
