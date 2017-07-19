@@ -894,6 +894,8 @@ particular records in a file and perform operations upon them.
 * Qualified Names::                     How to qualify names with a namespace.
 * Default Namespace::                   The default namespace.
 * Changing The Namespace::              How to change the namespace.
+* Naming Rules::                        Namespace and Component Naming Rules.
+* Internal Name Management::            How names are stored internally.
 * Namespace Example::                   An example of code using a namespace.
 * Namespace Misc::                      Namespace notes for developers.
 * Computer Arithmetic::                 A quick intro to computer math.
@@ -1685,6 +1687,10 @@ messages into different languages at runtime.
 
 @item
 @ref{Debugger}, describes the @command{gawk} debugger.
+
+@item
+@ref{Namespaces}, describes how @command{gawk} allows variables and/or
+functions of the same name to be in different namespaces.
 
 @item
 @ref{Arbitrary Precision Arithmetic},
@@ -3746,6 +3752,9 @@ This option may be given multiple times; the @command{awk}
 program consists of the concatenation of the contents of
 each specified @var{source-file}.
 
+Files named with @option{-i} are treated as if they had @samp{@@namespace "awk"}
+at their beginning. @xref{Namespaces}, for more information.
+
 @item -v @var{var}=@var{val}
 @itemx --assign @var{var}=@var{val}
 @cindex @option{-v} option
@@ -3903,6 +3912,10 @@ $ @kbd{gawk -e 'BEGIN @{ a = 5 ;' -e 'print a @}'}
 @noindent
 However, this is no longer true. If you have any scripts that
 rely upon this feature, you should revise them.
+
+This is because each @var{program-text} is treated as if it had
+@samp{@@namespace "awk"} at its beginning. @xref{Namespaces}, for more
+information.
 @end quotation
 
 @item @option{-E} @var{file}
@@ -3980,6 +3993,9 @@ Second, because this option is intended to be used with code libraries,
 input.  Thus, after processing an @option{-i} argument, @command{gawk}
 still expects to find the main source code via the @option{-f} option
 or on the command line.
+
+Files named with @option{-i} are treated as if they had @samp{@@namespace "awk"}
+at their beginning. @xref{Namespaces}, for more information.
 
 @item @option{-l} @var{ext}
 @itemx @option{--load} @var{ext}
@@ -4757,6 +4773,10 @@ to be run from web pages.
 As mentioned in @ref{AWKPATH Variable}, the current directory is always
 searched first for source files, before searching in @env{AWKPATH};
 this also applies to files named with @code{@@include}.
+
+Finally, files included with @code{@@include}
+are treated as if they had @samp{@@namespace "awk"}
+at their beginning. @xref{Namespaces}, for more information.
 
 @node Loading Shared Libraries
 @section Loading Dynamic Extensions into Your Program
@@ -30238,6 +30258,7 @@ This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 * Qualified Names::             How to qualify names with a namespace.
 * Default Namespace::           The default namespace.
 * Changing The Namespace::      How to change the namespace.
+* Naming Rules::                Namespace and Component Naming Rules.
 * Internal Name Management::    How names are stored internally.
 * Namespace Example::           An example of code using a namespace.
 * Namespace Misc::              Namespace notes for developers.
@@ -30267,46 +30288,32 @@ less chance for collisions.)  These facilities are sometimes referred
 to as @dfn{packages} or @dfn{modules}.
 
 Starting with @value{PVERSION} @strong{FIXME} 5.0, @command{gawk} provides a
-mechanism to put functions and global variables into separate namespaces.
+simple mechanism to put functions and global variables into separate namespaces.
 
 @node Qualified Names
 @section Qualified Names
 
-A @dfn{qualified name} is an identifier that includes a namespace
-name and the namespace separator, @code{::}.  For example, one
-might have a function named @code{posix::getpid()}.  Here, the
-namespace is @code{posix} and the function name within the namespace
-is @code{getpid()}.  The namespace and variable or function name are
-separated by a double-colon.  Only one such separator is allowed in a
-qualified name.
+A @dfn{qualified name} is an identifier that includes a namespace name,
+the namespace separator @code{::}, and a component name.  For example, one
+might have a function named @code{posix::getpid()}.  Here, the namespace
+is @code{posix} and the function name within the namespace (the component)
+is @code{getpid()}.  The namespace and component names are separated by
+a double-colon.  Only one such separator is allowed in a qualified name.
 
 @quotation NOTE
 Unlike C++, the @code{::} is @emph{not} an operator.  No spaces are
-allowed between the namespace name, the @code{::}, and the rest of
-the name.
+allowed between the namespace name, the @code{::}, and the component name.
 @end quotation
 
-You must use fully qualified names from one namespace to access variables
+You must use qualified names from one namespace to access variables
 and functions in another.  This is especially important when using
 variable names to index the special @code{SYMTAB} array (@pxref{Auto-set}),
 and when making indirect function calls (@pxref{Indirect Calls}).
 
-It is a fatal error to use any @command{gawk} reserved word (such
-as @code{if} or @code{for}), or the name of any built-in function
-(such as @code{sin()} or @code{gsub()}) as either part of a
-fully qualified name.@footnote{We hope to improve the implementation so
-that this restriction will apply only to standard @command{awk}
-reserved words and built-in functions. In this case, the additional
-built-in functions defined by @command{gawk} will become pre-loaded
-extension functions.}
-
-@command{gawk} pre-defined variable names may be used:
-@code{NF::NR} is valid, if possibly not all that useful.
-
 @node Default Namespace
 @section The Default Namespace
 
-The default namespace, not surprisingly, is @samp{awk}.
+The default namespace, not surprisingly, is @code{awk}.
 All of the predefined @command{awk} and @command{gawk} variables
 are in this namespace, and thus have qualified names like
 @code{awk::ARGC}, @code{awk::NF}, and so on.
@@ -30314,10 +30321,9 @@ are in this namespace, and thus have qualified names like
 Furthermore, even when you have changed the namespace for your
 current source file (@pxref{Changing The Namespace}), @command{gawk}
 forces unqualified identifiers whose names are all uppercase letters
-to be in the @samp{awk} namespace.  This makes it possible for you to easily
+to be in the @code{awk} namespace.  This makes it possible for you to easily
 reference @command{gawk}'s global variables from different namespaces.
-
-It is a syntax error to use qualified names for function parameter names.
+It also keeps your code looking natural.
 
 @node Changing The Namespace
 @section Changing The Namespace
@@ -30341,9 +30347,9 @@ do it too much.
 
 @quotation NOTE
 Association of unqualified identifiers to a namespace is handled while
-your program is being parsed by @command{gawk} and before it starts
-to run.  There is no concept of a ``current'' namespace once your program
-starts executing.  Be sure you understand this.
+@command{gawk} parses your program, before it starts to run.  There is
+no concept of a ``current'' namespace once your program starts executing.
+Be sure you understand this.
 @end quotation
 
 Each source file for @option{-i} and @option{-f} starts out with
@@ -30351,19 +30357,93 @@ an implicit @samp{@@namespace "awk"}.  Similarly, each chunk of
 command-line code supplied with @option{-e} has such an implicit
 initial statement (@pxref{Options}).
 
+Files included with @code{@@include} (@pxref{Include Files}) ``push'' and
+``pop'' the current namespace. That is, each @code{@@include} saves the
+current namespace and starts over with an implicit @samp{@@namespace
+"awk"} until an explicit @samp{@@namespace} statement is seen.
+When @command{gawk} finishes processing the included file, the saved
+namespace is restored and processing continues where it left off in the
+original file.
+
 The use of @samp{@@namespace} has no influence upon the order of execution
 of @code{BEGIN}, @code{BEGINFILE}, @code{END}, and @code{ENDFILE} rules.
+
+@node Naming Rules
+@section Namespace and Component Naming Rules
+
+A number of rules apply to the namespace and component names, as follows.
+
+@itemize @bullet
+@item
+It is a syntax error to use qualified names for function parameter names.
+
+@item
+It is a syntax error to use any standard @command{awk} reserved word (such
+as @code{if} or @code{for}), or the name of any standard built-in function
+(such as @code{sin()} or @code{gsub()}) as either part of a qualified name.
+Thus, the following produces a syntax error:
+
+@example
+@@namespace "example"
+
+function gsub(str, pat, result) @{ @dots{} @}
+@end example
+
+@item
+Outside the @code{awk} namespace, the names of the additional @command{gawk}
+built-in functions (such as @code{gensub()} or @code{strftime()}) @emph{may}
+be used as a component name.  The same set of names may be used as namespace
+names, although this has the potential to be confusing.
+
+@item
+The additional @command{gawk} built-in functions may still be called
+from outside the @code{awk} namespace by qualifying them. For example,
+@code{awk::systime()}.  Here is a somewhat silly example demonstrating
+this rule and the previous one:
+
+@example
+BEGIN @{
+    print "in awk namespace, systime() =", systime()
+@}
+
+@@namespace "testing"
+
+function systime()
+@{
+    print "in testing namespace, systime() =", awk::systime()
+@}
+
+BEGIN @{
+    systime()
+@}
+@end example
+
+@noindent
+
+When run, it produces output like this:
+
+@example
+$ @kbd{gawk -f systime.awk}
+@print{} in awk namespace, systime() = 1500488503
+@print{} in testing namespace, systime() = 1500488503
+@end example
+
+@item
+@command{gawk} pre-defined variable names may be used:
+@code{NF::NR} is valid, if possibly not all that useful.
+@end itemize
 
 @node Internal Name Management
 @section Internal Name Management
 
-For backwards compatibility, all identifiers in the @samp{awk} namespace
-are stored internally as unadorned identifiers.  This is mainly relevant
+For backwards compatibility, all identifiers in the @code{awk} namespace
+are stored internally as unadorned identifiers (that is, without a
+leading @samp{awk::}).  This is mainly relevant
 when using such identifiers as indices for @code{SYMTAB}, @code{FUNCTAB},
 and @code{PROCINFO["identifiers"]} (@pxref{Auto-set}), and for use in
 indirect function calls (@pxref{Indirect Calls}).
 
-In program code, to refer to variables and functions in the @samp{awk}
+In program code, to refer to variables and functions in the @code{awk}
 namespace from another namespace, you must still use the @samp{awk::}
 prefix. For example:
 
@@ -30371,7 +30451,7 @@ prefix. For example:
 @@namespace "awk"          @ii{This is the default namespace}
 
 BEGIN @{
-    Title = "My Report"   @ii{Fully qualified name is} awk::Title
+    Title = "My Report"   @ii{Qualified name is} awk::Title
 @}
 
 @@namespace "report"       @ii{Now in} report @ii{namespace}
@@ -30387,12 +30467,13 @@ function compute()        @ii{This is really} report::compute()
 @section Namespace Example
 
 The following example is a revised version of the suite of routines
-developed in @ref{Passwd Functions}.
+developed in @ref{Passwd Functions}. See there for an explanation
+of how the code works.
 
 The formulation here, due mainly to Andrew Schorr, is rather elegant.
-It places all of the implementation functions and variables in the
-@code{passwd} namespace, while leaving the main interface functions
-in the default @code{awk} namespace.
+All of the implementation functions and variables are in the
+@code{passwd} namespace, whereas the main interface functions are
+defined in the @code{awk} namespace.
 
 @example
 @c file eg/lib/ns_passwd.awk
@@ -30481,8 +30562,32 @@ As you can see, this version also follows the convention mentioned in
 @ref{Library Names}, whereby global variable and function names
 start with a capital letter.
 
+Here is a simple test program:
+
+@example
+BEGIN @{
+    while ((p = getpwent()) != "")
+        print p
+@}
+@end example
+
+@noindent
+
+Here's what happens when it's run:
+
+@example
+$ @kbd{gawk -f ns_passwd.awk -f testpasswd.awk}
+@print{} root:x:0:0:root:/root:/bin/bash
+@print{} daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+@print{} bin:x:2:2:bin:/bin:/usr/sbin/nologin
+@print{} sys:x:3:3:sys:/dev:/usr/sbin/nologin
+@dots{}
+@end example
+
 @node Namespace Misc
 @section Miscellaneous Notes
+
+@strong{FIXME}: Finish revising this material.
 
 Other notes for reviewers:
 
@@ -30501,11 +30606,6 @@ Simply print fully qualified names all the time. Maybe allow a
 namespace and it will use that to create fully qualified names?
 Have to be careful about all uppercase names though.
 
-@item How does this affect @code{@@include}?
-Basically @code{@@include} should push and pop the namespace. Each
-@code{@@include} saves the current namespace and starts over with
-namespace @samp{awk} until an @code{@@namespace} is seen
-(DONE).
 
 @item Extension functions
 Revise the current macros to pass @code{"awk"} as the namespace
@@ -30547,47 +30647,6 @@ Should the @code{ext_id}, which is currently just a null pointer,
 be made to point to something?  What would be carry around in it?
 @end enumerate
 
-@item Additional @command{gawk} built-ins
-Based on some discussion with Andrew Schorr, I'd like to find a way
-to change the additional @command{gawk} built-in functions, like
-@code{gensub()}, @code{strftime()}, etc. into ``pre-defined''
-extension functions in the @samp{awk} namespace.  This has some
-advantages:
-
-@enumerate 1
-@item
-It gives us room to add more built-ins without they're being reserved
-words to the grammar.  This in turn means that:
-
-@item
-Users can define their own functions with the same name as @command{gawk}
-additions as long as they put them in their own namespace.
-@end enumerate
-
-Everybody wins!
-
-Note that POSIX-standard pre-defined @command{awk} names such as @command{length()}
-and @command{sub()} would remain reserved. The following would produce
-a syntax error:
-
-@example
-@@namespace "example"
-
-function gsub(str, pat, result) @{ @dots{} @}
-@end example
-
-@noindent
-Whereas this would not:
-
-@example
-@@namespace "example"
-
-function gensub(str, pat, result) @{ @dots{} @}
-@end example
-
-One challenge is the @code{snode()} function in @file{awkgram.y} which does certain ``fix-ups''
-for calls to certain built-in functions, including some of the additional @command{gawk}-specific ones.
-I still think this is all doable, but it will take some thought.
 @end table
 
 @node Arbitrary Precision Arithmetic
