@@ -3,6 +3,11 @@
 	* gawktexi.in (Extension Sample Inplace): Rework to use the
 	"inplace" namespace.
 
+	* gawktexi.in (Namespace And Features): Renamed from
+	`Namespace Misc' and reworked.
+	(Symbol table by name): Add note about namespace and
+	component name rules with xref to section in Namespaces chapter.
+
 2017-07-19         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* gawktexi.in (Namespaces): Cleanup, new section on naming rules

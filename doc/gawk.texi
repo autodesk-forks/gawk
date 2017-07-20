@@ -902,7 +902,7 @@ particular records in a file and perform operations upon them.
 * Naming Rules::                        Namespace and Component Naming Rules.
 * Internal Name Management::            How names are stored internally.
 * Namespace Example::                   An example of code using a namespace.
-* Namespace Misc::                      Namespace notes for developers.
+* Namespace And Features::      Namespaces and other @command{gawk} features.
 * Computer Arithmetic::                 A quick intro to computer math.
 * Math Definitions::                    Defining terms used.
 * MPFR features::                       The MPFR features in @command{gawk}.
@@ -31247,7 +31247,7 @@ This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 * Naming Rules::                Namespace and Component Naming Rules.
 * Internal Name Management::    How names are stored internally.
 * Namespace Example::           An example of code using a namespace.
-* Namespace Misc::              Namespace notes for developers.
+* Namespace And Features::      Namespaces and other @command{gawk} features.
 @end menu
 
 @node Global Namespace
@@ -31570,70 +31570,31 @@ $ @kbd{gawk -f ns_passwd.awk -f testpasswd.awk}
 @dots{}
 @end example
 
-@node Namespace Misc
-@section Miscellaneous Notes
+@node Namespace And Features
+@section Namespaces and Other @command{gawk} Features
 
-@strong{FIXME}: Finish revising this material.
+This @value{SECTION} looks at how the namespace facility interacts
+with other important @command{gawk} features.
 
-Other notes for reviewers:
+The profiler and pretty-printer (@pxref{Profiling}) have been enhanced
+to understand namespaces and the namespace naming rules described in
+@ref{Naming Rules}.  In particular, the output groups functions in the same
+namespace together, and has @samp{@@namespace} directives in front
+of rules as necessary. This allows component names to be
+simple identifiers, instead of using qualified identifiers everywhere.
 
-@table @asis
-@item Profiler:
-When profiling, we include the namespace in the @code{Op_Rule}
-and @code{Op_Func} instructions.  If the namespace
-is different from the previous
-one, we output an @samp{@@namespace} statement.  For each identifier,
-if it starts with the current namespace, we output only the simple part
-(DONE).
+Interaction with the debugger (@pxref{Debugging}) has not had to change
+(at least as of this writing).  Some of the internal byte codes changed
+in order to accomodate namespaces, and the debugger's @code{dump} command
+was adjusted to match.
 
-@item Debugger:
-Simply print fully qualified names all the time. Maybe allow a
-@samp{namespace @var{xxx}} command in the debugger to set the
-namespace and it will use that to create fully qualified names?
-Have to be careful about all uppercase names though.
-
-
-@item Extension functions
-Revise the current macros to pass @code{"awk"} as the namespace
-argument and add new macros with @samp{_ns} in the name that
-pass the namespace of the extension.  This preserves backwards
-compatibility at the source level while providing access to namespaces
-as needed.
-
-Actually, since we've decided that @code{awk} namespace variables and
-function are stored unadorned, the current macros that pass @code{""}
-would continue to work. Internally, we need to recognize @code{"awk"} and
-@emph{not} fully qualify the name before storing it in the symbol table.
-(Both DONE).
-
-@item More on Extension Functions
-@enumerate 1
-@item
-Function and variables names need to be simple identifiers. This is now
-checked in the code. Allowing both namespace + identifier
-and @code{foo::bar} would be confusing to document and to code and to test.
-
-@item
-Function and variable names cannot be reserved words. This is now
-checked.
-
-@item
-Namespace names need to be valid identifiers. They cannot be
-keywords or reserved function names.
-
-@item
-It's debatable if there should be a default namespace for a plugin.
-Should it be the plugin's name?  Probably not.
-
-So, the initial plugin API allowed for (but did not use) a namespace
-for installing functions, but didn't for variables. That's been fixed.
-
-@item
-Should the @code{ext_id}, which is currently just a null pointer,
-be made to point to something?  What would be carry around in it?
-@end enumerate
-
-@end table
+The extension API (@pxref{Dynamic Extensions}) has always allowed for
+placing functions into a different namespace, although this was
+never implemented.  However, the symbol lookup and symbol update routines
+did not have provision for including a namespace. That has now been
+corrected. @xref{Extension Sample Inplace}, for a nice example of
+an extension that leverages a namespace used by cooperating @command{awk}
+and C code.
 
 @node Arbitrary Precision Arithmetic
 @chapter Arithmetic and Arbitrary-Precision Arithmetic with @command{gawk}
@@ -34521,6 +34482,13 @@ for in the default @code{awk} namespace.
 An extension can look up the value of @command{gawk}'s special variables.
 However, with the exception of the @code{PROCINFO} array, an extension
 cannot change any of those variables.
+
+When searching for or updating variables outside the @code{awk} namespace
+(@pxref{Namespaces}), function and variable names must be simple
+identifiers.@footnote{Allowing both namespace plus identifier and
+@code{foo::bar} would have been too confusing to document, and to code
+and test.} In addition, namespace names and variable and function names
+must follow the rules given in @ref{Naming Rules}.
 
 @node Symbol table by cookie
 @subsubsection Variable Access and Update by Cookie
