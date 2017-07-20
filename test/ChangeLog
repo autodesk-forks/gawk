@@ -1,3 +1,10 @@
+2017-07-20         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* Makefile.am (inplace1, inplace2, inplace3): Update to use
+	inplace::suffix instead of INPLACE_SUFFIX.
+	* inplace1.ok, inplace2.ok, inplace3.ok: Update after code
+	changes.
+
 2017-07-07         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* Makefile.am (eofsrc1): New test.

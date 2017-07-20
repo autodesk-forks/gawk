@@ -36590,7 +36590,9 @@ else
 The @code{inplace} extension emulates GNU @command{sed}'s @option{-i} option,
 which performs ``in-place'' editing of each input file.
 It uses the bundled @file{inplace.awk} include file to invoke the extension
-properly:
+properly.  This extension makes use of the namespace facility to place
+all the variables and functions in the @code{inplace} namespace
+(@pxref{Namespaces}):
 
 @example
 @c file eg/lib/inplace.awk
@@ -36599,8 +36601,8 @@ properly:
 
 @@load "inplace"
 
-# Please set INPLACE_SUFFIX to make a backup copy.  For example, you may
-# want to set INPLACE_SUFFIX to .bak on the command line or in a BEGIN rule.
+# Please set inplace::suffix to make a backup copy.  For example, you may
+# want to set inplace::suffix to .bak on the command line or in a BEGIN rule.
 
 # By default, each filename on the command line will be edited inplace.
 # But you can selectively disable this by adding an inplace=0 argument
@@ -36608,25 +36610,27 @@ properly:
 # reenable it later on the commandline by putting inplace=1 before files
 # that you wish to be subject to inplace editing.
 
-# N.B. We call inplace_end() in the BEGINFILE and END rules so that any
+# N.B. We call inplace::end() in the BEGINFILE and END rules so that any
 # actions in an ENDFILE rule will be redirected as expected.
 
+@@namespace "inplace"
+
 BEGIN @{
-    inplace = 1         # enabled by default
+    enable = 1         # enabled by default
 @}
 
 BEGINFILE @{
-    if (_inplace_filename != "")
-        inplace_end(_inplace_filename, INPLACE_SUFFIX)
-    if (inplace)
-        inplace_begin(_inplace_filename = FILENAME, INPLACE_SUFFIX)
+    if (filename != "")
+        end(filename, suffix)
+    if (enable)
+        begin(filename = FILENAME, suffix)
     else
-        _inplace_filename = ""
+        filename = ""
 @}
 
 END @{
-    if (_inplace_filename != "")
-        inplace_end(_inplace_filename, INPLACE_SUFFIX)
+    if (filename != "")
+        end(filename, suffix)
 @}
 @end group
 @c endfile
@@ -36636,17 +36640,18 @@ For each regular file that is processed, the extension redirects
 standard output to a temporary file configured to have the same owner
 and permissions as the original.  After the file has been processed,
 the extension restores standard output to its original destination.
-If @code{INPLACE_SUFFIX} is not an empty string, the original file is
+If @code{inplace::suffix} is not an empty string, the original file is
 linked to a backup @value{FN} created by appending that suffix.  Finally,
 the temporary file is renamed to the original @value{FN}.
 
-Note that the use of this feature can be controlled by placing @samp{inplace=0}
-on the command-line prior to listing files that should not be processed this
-way.  You can reenable inplace editing by adding an @samp{inplace=1} argument
-prior to files that should be subject to inplace editing.
+Note that the use of this feature can be controlled by placing
+@samp{inplace::enable=0} on the command-line prior to listing files that
+should not be processed this way.  You can reenable inplace editing by adding
+an @samp{inplace::enable=1} argument prior to files that should be subject
+to inplace editing.
 
-The @code{_inplace_filename} variable serves to keep track of the
-current filename so as to not invoke @code{inplace_end()} before
+The @code{inplace::filename} variable serves to keep track of the
+current filename so as to not invoke @code{inplace::end()} before
 processing the first file.
 
 If any error occurs, the extension issues a fatal error to terminate
@@ -36661,7 +36666,7 @@ $ @kbd{gawk -i inplace '@{ gsub(/foo/, "bar") @}; @{ print @}' file1 file2 file3
 To keep a backup copy of the original files, try this:
 
 @example
-$ @kbd{gawk -i inplace -v INPLACE_SUFFIX=.bak '@{ gsub(/foo/, "bar") @}}
+$ @kbd{gawk -i inplace -v inplace::suffix=.bak '@{ gsub(/foo/, "bar") @}}
 > @kbd{@{ print @}' file1 file2 file3}
 @end example
 
