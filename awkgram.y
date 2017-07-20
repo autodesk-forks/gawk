@@ -59,8 +59,6 @@ static bool set_namespace(INSTRUCTION *ns);
 static void next_sourcefile(void);
 static char *tokexpand(void);
 static NODE *set_profile_text(NODE *n, const char *str, size_t len);
-static void validate_qualified_name(char *token);
-static int check_qualified_name(char *token);
 static char *make_pp_namespace();
 
 #define instruction(t)	bcalloc(t, 1, 0)
@@ -6451,7 +6449,7 @@ set_profile_text(NODE *n, const char *str, size_t len)
 
 /* validate_qualified_name --- make sure that a qualified name is built correctly */
 
-static void
+void
 validate_qualified_name(char *token)
 {
 	char *cp, *cp2;
@@ -6473,7 +6471,7 @@ validate_qualified_name(char *token)
 
 /* check_qualified_name --- decide if a name is special or not */
 
-static int
+int
 check_qualified_name(char *token)
 {
 	char *cp;

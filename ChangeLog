@@ -1,3 +1,14 @@
+2017-07-20         Arnold D. Robbins     <arnold@skeeve.com>
+
+	Make qualified names work with -v and command-line assignments.
+
+	* awk.h (validate_qualified_name, check_qualified_name): Declare.
+	* awkgram.y (validate_qualified_name): No longer static.
+	(check_qualified_name): Ditto.
+	* main.c (arg_assign): Allow colons in identifiers. If not a
+	bad identifier, call validate_qualified_name and instead of
+	check_special use check_qualified_name.
+
 2017-07-17         Arnold D. Robbins     <arnold@skeeve.com>
 
 	Allow identifiers that are gawk extensions to be used as plain

@@ -1134,10 +1134,11 @@ arg_assign(char *arg, bool initing)
 		badvar = true;
 	else
 		for (cp2 = arg+1; *cp2; cp2++)
-			if (! is_identchar((unsigned char) *cp2)) {
+			if (! is_identchar((unsigned char) *cp2) && *cp2 != ':') {
 				badvar = true;
 				break;
 			}
+
 
 	if (badvar) {
 		if (initing)
@@ -1147,7 +1148,9 @@ arg_assign(char *arg, bool initing)
 			lintwarn(_("`%s' is not a variable name, looking for file `%s=%s'"),
 				arg, arg, cp);
 	} else {
-		if (check_special(arg) >= 0)
+		validate_qualified_name(arg);
+
+		if (check_qualified_name(arg) >= 0)
 			fatal(_("cannot use gawk builtin `%s' as variable name"), arg);
 
 		if (! initing) {
