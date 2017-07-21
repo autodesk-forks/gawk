@@ -38,6 +38,7 @@ Automake
 Autotools
 Avahi
 Awk
+Awklib
 Awkstuff
 Ayalon
 BBBB
@@ -65,6 +66,9 @@ Broderick
 Buening
 Burridge
 BusyBox
+Bycount
+Byname
+Byuid
 CAKuGj
 CASEFOLD
 CC
@@ -249,6 +253,8 @@ Igawk
 Illumos
 Incrementing
 Inf
+Init
+Inited
 Inplace
 InstallingGNVPackages
 Internetworking
@@ -1076,6 +1082,7 @@ getgruser
 getline
 getlocaltime
 getopt
+getpid
 getpwent
 getpwnam
 getpwuid
@@ -1427,6 +1434,7 @@ nonwhitespace
 noone
 nr
 nroff
+ns
 nul
 num
 nums
@@ -1769,6 +1777,7 @@ testbits
 testdir
 testext
 testff
+testpasswd
 tew
 tex
 texi
@@ -1947,6 +1956,7 @@ yearday
 ylwrap
 yourprog
 yxaay
+yyy
 zA
 zbcom
 zerofile

@@ -30599,7 +30599,7 @@ simple identifiers, instead of using qualified identifiers everywhere.
 
 Interaction with the debugger (@pxref{Debugging}) has not had to change
 (at least as of this writing).  Some of the internal byte codes changed
-in order to accomodate namespaces, and the debugger's @code{dump} command
+in order to accommodate namespaces, and the debugger's @code{dump} command
 was adjusted to match.
 
 The extension API (@pxref{Dynamic Extensions}) has always allowed for
