@@ -1,3 +1,8 @@
+2017-07-26         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* Makefile.am (nsbad): New test.
+	* nsbad.awk, nsbad.ok: New files.
+
 2017-07-20         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* Makefile.am (inplace1, inplace2, inplace3): Update to use

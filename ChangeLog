@@ -1,3 +1,15 @@
+2017-07-26         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* awkgram.y (set_namespace): Change return type void, adjust
+	all return statements.
+	[@namespace]: Don't YYABORT on bad namespace so that we can check
+	the rest of the program.
+	(validate_qualified_name): Check traditional / posix first. Return
+	after printing an error message; we don't want to print multiple
+	messages for the same identifer.
+	* interpret.h (r_interpret): For indirect call, set do_qualify
+	parameter of lookup based on presence of a colon.
+
 2017-07-20         Arnold D. Robbins     <arnold@skeeve.com>
 
 	Make qualified names work with -v and command-line assignments.

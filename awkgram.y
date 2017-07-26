@@ -55,7 +55,7 @@ static void dumpintlstr(const char *str, size_t len);
 static void dumpintlstr2(const char *str1, size_t len1, const char *str2, size_t len2);
 static int include_source(INSTRUCTION *file);
 static int load_library(INSTRUCTION *file);
-static bool set_namespace(INSTRUCTION *ns);
+static void set_namespace(INSTRUCTION *ns);
 static void next_sourcefile(void);
 static char *tokexpand(void);
 static NODE *set_profile_text(NODE *n, const char *str, size_t len);
@@ -283,8 +283,7 @@ rule
 		at_seen = false;
 
 		// this frees $3 storage in all cases
-		if (! set_namespace($3))
-			YYABORT;
+		set_namespace($3);
 
 		yyerrok;
 	  }
@@ -6449,6 +6448,11 @@ set_profile_text(NODE *n, const char *str, size_t len)
 
 /* validate_qualified_name --- make sure that a qualified name is built correctly */
 
+/*
+ * This routine returns upon first error, no need to produce multiple, possibly
+ * conflicting / confusing error messages.
+ */
+
 void
 validate_qualified_name(char *token)
 {
@@ -6458,15 +6462,29 @@ validate_qualified_name(char *token)
 	if ((cp = strchr(token, ':')) == NULL)
 		return;
 
-	if (! is_letter(cp[2]))
+	if (do_traditional || do_posix) {
+		error_ln(sourceline, _("identifier %s: qualified names not allowed in traditional / POSIX mode"), token);
+		return;
+	}
+
+	if (cp[1] != ':') {	// could happen from command line
+		error_ln(sourceline, _("identifier %s: namespace separator is two colons, not one"), token);
+		return;
+	}
+
+	if (! is_letter(cp[2])) {
 		error_ln(sourceline,
 				_("qualified identifier `%s' is badly formed"),
 				token);
+		return;
+	}
 
-	if ((cp2 = strchr(cp+2, ':')) != NULL)
+	if ((cp2 = strchr(cp+2, ':')) != NULL) {
 		error_ln(sourceline,
 			_("identifier `%s': namespace separator can only appear once in a qualified name"),
 			token);
+		return;
+	}
 }
 
 /* check_qualified_name --- decide if a name is special or not */
@@ -6509,43 +6527,53 @@ check_qualified_name(char *token)
 
 	// First check the namespace part
 	i = check_special(ns);
-	if (i >= 0 && (tokentab[i].flags & GAWKX) == 0)
-		fatal(_("using reserved identifier `%s' as a namespace is not allowed"), ns);
+	if (i >= 0 && (tokentab[i].flags & GAWKX) == 0) {
+		error_ln(sourceline, _("using reserved identifier `%s' as a namespace is not allowed"), ns);
+		goto done;
+	}
 
 	// Now check the subordinate part
 	i = check_special(subname);
-	if (i >= 0 && (tokentab[i].flags & GAWKX) == 0 && strcmp(ns, "awk") != 0)
-		fatal(_("using reserved identifier `%s' as second component of a qualified name is not allowed"), subname);
+	if (i >= 0 && (tokentab[i].flags & GAWKX) == 0 && strcmp(ns, "awk") != 0) {
+		error_ln(sourceline, _("using reserved identifier `%s' as second component of a qualified name is not allowed"), subname);
+		goto done;
+	}
 
-	if (strcmp(ns, "awk") == 0)
+	if (strcmp(ns, "awk") == 0) {
 		i = check_special(subname);
-	else
+		if (i >= 0) {
+			if ((tokentab[i].flags & GAWKX) != 0 && tokentab[i].class == LEX_BUILTIN)
+				;	// gawk additional builtin function, is ok
+			else
+				error_ln(sourceline, _("using reserved identifier `%s' as second component of a qualified name is not allowed"), subname);
+		}
+	} else
 		i = -1;
-
+done:
 	*end = ':';
 	return i;
 }
 
 /* set_namespace --- change the current namespace */
 
-static bool
+static void
 set_namespace(INSTRUCTION *ns)
 {
 	if (ns == NULL)
-		return false;
+		return;
 
 	if (do_traditional || do_posix) {
 		error_ln(ns->source_line, _("@namespace is a gawk extension"));
 		efree(ns->lextok);
 		bcfree(ns);
-		return false;
+		return;
 	}
 
 	if (! is_valid_identifier(ns->lextok)) {
 		error_ln(ns->source_line, _("namespace name `%s' must meet identifier naming rules"), ns->lextok);
 		efree(ns->lextok);
 		bcfree(ns);
-		return false;
+		return;
 	}
 
 	int mid = check_special(ns->lextok);
@@ -6554,7 +6582,7 @@ set_namespace(INSTRUCTION *ns)
 		error_ln(ns->source_line, _("using reserved identifier `%s' as a namespace is not allowed"), ns->lextok);
 		efree(ns->lextok);
 		bcfree(ns);
-		return false;
+		return;
 	}
 
 	if (strcmp(ns->lextok, current_namespace) == 0)
@@ -6573,7 +6601,7 @@ set_namespace(INSTRUCTION *ns)
 
 	namespace_changed = true;
 
-	return true;
+	return;
 }
 
 /* make_pp_namespace --- make namespace string for use by pretty printer */
