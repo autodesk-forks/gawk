@@ -1430,7 +1430,7 @@ extern bool is_alnum(int c);
 extern bool is_letter(int c);
 extern bool is_identchar(int c);
 extern NODE *make_regnode(int type, NODE *exp);
-extern void validate_qualified_name(char *token);
+extern bool validate_qualified_name(char *token);
 extern int check_qualified_name(char *token);
 /* builtin.c */
 extern double double_to_int(double d);

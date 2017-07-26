@@ -1076,8 +1076,7 @@ match_re:
 					ni = setup_frame(pc);
 					JUMPTO(ni);	/* Op_func */
 				}
-				bool do_qualify = (strchr(t1->stptr, ':') == NULL);
-				f = lookup(t1->stptr, do_qualify);
+				f = lookup(t1->stptr, true);
 			}
 
 			if (f == NULL) {

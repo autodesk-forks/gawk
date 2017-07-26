@@ -389,9 +389,10 @@ main(int argc, char **argv)
 	init_fields();
 
 	/* Now process the pre-assignments */
+	int dash_v_errs = 0;	// bad stuff for -v
 	for (i = 0; i <= numassigns; i++) {
 		if (preassigns[i].type == PRE_ASSIGN)
-			(void) arg_assign(preassigns[i].val, true);
+			dash_v_errs += (arg_assign(preassigns[i].val, true) == false);
 		else	/* PRE_ASSIGN_FS */
 			cmdline_fs(preassigns[i].val);
 		efree(preassigns[i].val);
@@ -455,7 +456,7 @@ main(int argc, char **argv)
 	setlocale(LC_NUMERIC, "C");
 #endif
 	/* Read in the program */
-	if (parse_program(& code_block) != 0)
+	if (parse_program(& code_block) != 0 || dash_v_errs > 0)
 		exit(EXIT_FAILURE);
 
 	if (do_intl)
@@ -463,7 +464,7 @@ main(int argc, char **argv)
 
 	if (current_namespace != awk_namespace) {
 		efree((char *) current_namespace);
-		current_namespace = "awk::";	// for pretty printer
+		current_namespace = awk_namespace;
 	}
 
 	install_builtins();
@@ -510,6 +511,7 @@ main(int argc, char **argv)
 		interpret(code_block);
 
 	if (do_pretty_print) {
+		current_namespace = "awk::";	// for pretty printer
 		dump_prog(code_block);
 		dump_funcs();
 	}
@@ -1148,7 +1150,10 @@ arg_assign(char *arg, bool initing)
 			lintwarn(_("`%s' is not a variable name, looking for file `%s=%s'"),
 				arg, arg, cp);
 	} else {
-		validate_qualified_name(arg);
+		if (! validate_qualified_name(arg)) {
+			badvar = true;
+			goto done;
+		}
 
 		if (check_qualified_name(arg) >= 0)
 			fatal(_("cannot use gawk builtin `%s' as variable name"), arg);
@@ -1199,6 +1204,7 @@ arg_assign(char *arg, bool initing)
 			var->var_assign();
 	}
 
+done:
 	if (! initing)
 		*--cp = '=';	/* restore original text of ARGV */
 	FNR = save_FNR;

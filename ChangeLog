@@ -1,5 +1,17 @@
 2017-07-26         Arnold D. Robbins     <arnold@skeeve.com>
 
+	* awk.h (validate_qualified_name): Return type back to bool.
+	* awkgram.y (validate_qualified_name): Return type back to bool.
+	(lookup_builtin): Make allowances for `awk::' prefix on name.
+	* interpret.h (r_interpret): For indirect call, always pass true
+	for do_qualify argument of lookup.
+	* main.c (main): Make note of errors in -v values, use this
+	to exit failure if any happen.  Only change current_namespace
+	to 'awk::' if doing pretty printing.
+	(arg_assign): If validate_qualified name returns false, error out.
+
+2017-07-26         Arnold D. Robbins     <arnold@skeeve.com>
+
 	* awkgram.y (set_namespace): Change return type void, adjust
 	all return statements.
 	[@namespace]: Don't YYABORT on bad namespace so that we can check

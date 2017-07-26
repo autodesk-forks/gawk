@@ -742,6 +742,11 @@ EXTRA_DIST = \
 	nors.ok \
 	nsbad.awk \
 	nsbad.ok \
+	nsbad_cmd.ok \
+	nsindirect1.awk \
+	nsindirect1.ok \
+	nsindirect2.awk \
+	nsindirect2.ok \
 	nsprof1.awk \
 	nsprof1.ok \
 	nsprof2.awk \
@@ -1267,7 +1272,7 @@ GAWK_EXT_TESTS = \
 	muldimposix \
 	nastyparm negtime next nondec nondec2 \
 	nonfatal1 nonfatal2 nonfatal3 \
-	nsbad nsprof1 nsprof2 \
+	nsbad nsbad_cmd nsindirect1 nsindirect2 nsprof1 nsprof2 \
 	patsplit posix printfbad1 printfbad2 printfbad3 printfbad4 printhuge procinfs \
 	profile0 profile1 profile2 profile3 profile4 profile5 profile6 profile7 \
 	profile8 profile9 profile10 pty1 \
@@ -2444,6 +2449,11 @@ nsprof2:
 eofsrc1:
 	@echo $@
 	@AWKPATH="$(srcdir)" $(AWK) -f "$(srcdir)"/$@a.awk -f "$(srcdir)"/$@b.awk >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
+	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+
+nsbad_cmd:
+	@echo $@
+	@AWKPATH="$(srcdir)" $(AWK) -v foo:bar=3 -v foo:::blat=4 1 /dev/null >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
 # Targets generated for other tests:

@@ -4198,7 +4198,7 @@ retry:
 	tokadd('\0');
 	pushback();
 
-	validate_qualified_name(tokstart);
+	(void) validate_qualified_name(tokstart);
 
 	/* See if it is a special token. */
 	if ((mid = check_qualified_name(tokstart)) >= 0) {
@@ -6302,6 +6302,9 @@ one_line_close(int fd)
 builtin_func_t
 lookup_builtin(const char *name)
 {
+	if (strncmp(name, "awk::", 5) == 0)
+		name += 5;
+
 	int mid = check_special(name);
 
 	if (mid == -1)
@@ -6453,38 +6456,40 @@ set_profile_text(NODE *n, const char *str, size_t len)
  * conflicting / confusing error messages.
  */
 
-void
+bool
 validate_qualified_name(char *token)
 {
 	char *cp, *cp2;
 
 	// no colon, by definition it's well formed
 	if ((cp = strchr(token, ':')) == NULL)
-		return;
+		return true;
 
 	if (do_traditional || do_posix) {
 		error_ln(sourceline, _("identifier %s: qualified names not allowed in traditional / POSIX mode"), token);
-		return;
+		return false;
 	}
 
 	if (cp[1] != ':') {	// could happen from command line
 		error_ln(sourceline, _("identifier %s: namespace separator is two colons, not one"), token);
-		return;
+		return false;
 	}
 
 	if (! is_letter(cp[2])) {
 		error_ln(sourceline,
 				_("qualified identifier `%s' is badly formed"),
 				token);
-		return;
+		return false;
 	}
 
 	if ((cp2 = strchr(cp+2, ':')) != NULL) {
 		error_ln(sourceline,
 			_("identifier `%s': namespace separator can only appear once in a qualified name"),
 			token);
-		return;
+		return false;
 	}
+
+	return true;
 }
 
 /* check_qualified_name --- decide if a name is special or not */
