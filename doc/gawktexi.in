@@ -30251,6 +30251,8 @@ program being debugged, but occasionally it can.
 @node Namespaces
 @chapter Namespaces in @command{gawk}
 
+@c FIXME: Need to add indexing for this chapter
+
 This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 
 @menu
@@ -30294,7 +30296,7 @@ simple mechanism to put functions and global variables into separate namespaces.
 @section Qualified Names
 
 A @dfn{qualified name} is an identifier that includes a namespace name,
-the namespace separator @code{::}, and a component name.  For example, one
+the namespace separator @code{::}, and a @dfn{component} name.  For example, one
 might have a function named @code{posix::getpid()}.  Here, the namespace
 is @code{posix} and the function name within the namespace (the component)
 is @code{getpid()}.  The namespace and component names are separated by
@@ -30328,7 +30330,7 @@ It also keeps your code looking natural.
 @node Changing The Namespace
 @section Changing The Namespace
 
-In order to set the current namespace, use an @samp{@@namespace} directive
+In order to set the current namespace, use an @code{@@namespace} directive
 at the top level of your program:
 
 @example
@@ -30357,15 +30359,15 @@ an implicit @samp{@@namespace "awk"}.  Similarly, each chunk of
 command-line code supplied with @option{-e} has such an implicit
 initial statement (@pxref{Options}).
 
-Files included with @code{@@include} (@pxref{Include Files}) ``push'' and
-``pop'' the current namespace. That is, each @code{@@include} saves the
-current namespace and starts over with an implicit @samp{@@namespace
-"awk"} until an explicit @samp{@@namespace} statement is seen.
-When @command{gawk} finishes processing the included file, the saved
-namespace is restored and processing continues where it left off in the
-original file.
+Files included with @code{@@include} (@pxref{Include Files}) ``push''
+and ``pop'' the current namespace. That is, each @code{@@include} saves
+the current namespace and starts over with an implicit @samp{@@namespace
+"awk"} which remains in effect until an explicit @code{@@namespace}
+statement is seen.  When @command{gawk} finishes processing the included
+file, the saved namespace is restored and processing continues where it
+left off in the original file.
 
-The use of @samp{@@namespace} has no influence upon the order of execution
+The use of @code{@@namespace} has no influence upon the order of execution
 of @code{BEGIN}, @code{BEGINFILE}, @code{END}, and @code{ENDFILE} rules.
 
 @node Naming Rules
@@ -30562,7 +30564,8 @@ As you can see, this version also follows the convention mentioned in
 @ref{Library Names}, whereby global variable and function names
 start with a capital letter.
 
-Here is a simple test program:
+Here is a simple test program. Since it's in a separate file, unadorned
+identifiers are sought for in the @code{awk} namespace:
 
 @example
 BEGIN @{
@@ -30587,13 +30590,13 @@ $ @kbd{gawk -f ns_passwd.awk -f testpasswd.awk}
 @node Namespace And Features
 @section Namespaces and Other @command{gawk} Features
 
-This @value{SECTION} looks at how the namespace facility interacts
+This @value{SECTION} looks briefly at how the namespace facility interacts
 with other important @command{gawk} features.
 
 The profiler and pretty-printer (@pxref{Profiling}) have been enhanced
-to understand namespaces and the namespace naming rules described in
+to understand namespaces and the namespace naming rules presented in
 @ref{Naming Rules}.  In particular, the output groups functions in the same
-namespace together, and has @samp{@@namespace} directives in front
+namespace together, and has @code{@@namespace} directives in front
 of rules as necessary. This allows component names to be
 simple identifiers, instead of using qualified identifiers everywhere.
 
@@ -30603,12 +30606,12 @@ in order to accommodate namespaces, and the debugger's @code{dump} command
 was adjusted to match.
 
 The extension API (@pxref{Dynamic Extensions}) has always allowed for
-placing functions into a different namespace, although this was
-never implemented.  However, the symbol lookup and symbol update routines
-did not have provision for including a namespace. That has now been
-corrected. @xref{Extension Sample Inplace}, for a nice example of
-an extension that leverages a namespace used by cooperating @command{awk}
-and C code.
+placing functions into a different namespace, although this was not
+previously implemented.  However, the symbol lookup and symbol update
+routines did not have provision for including a namespace. That has now
+been corrected (@pxref{Symbol table by name}).
+@xref{Extension Sample Inplace}, for a nice example of an extension that
+leverages a namespace shared by cooperating @command{awk} and C code.
 
 @node Arbitrary Precision Arithmetic
 @chapter Arithmetic and Arbitrary-Precision Arithmetic with @command{gawk}
