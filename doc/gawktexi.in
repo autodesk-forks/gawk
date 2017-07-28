@@ -36196,13 +36196,6 @@ Which reading mechanism should you replace, the one to get
 a record, or the one to read raw bytes?
 
 @item
-(Hard.)
-How would you provide namespaces in @command{gawk}, so that the
-names of functions in different extensions don't conflict with each other?
-If you come up with a really good scheme, contact the @command{gawk}
-maintainer to tell him about it.
-
-@item
 Write a wrapper script that provides an interface similar to
 @samp{sed -i} for the ``inplace'' extension presented in
 @ref{Extension Sample Inplace}.

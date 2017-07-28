@@ -2,6 +2,8 @@
 
 	* gawktexi.in (Type Functions): Improve the example
 	for untyped variables.
+	(Extension Exercises): Remove the exercise that talks
+	about namespaces, since it's no longer relevant.
 
 2017-07-28         Arnold D. Robbins     <arnold@skeeve.com>
 
