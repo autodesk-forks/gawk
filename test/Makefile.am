@@ -1925,7 +1925,7 @@ mbprintf4::
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
 mbprintf5::
-	echo $@
+	@echo $@
 	@case `uname` in \
 	CYGWIN*) echo this test fails on cygwin --- skipping $@ ;; \
 	*) \
