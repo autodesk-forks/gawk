@@ -902,7 +902,8 @@ particular records in a file and perform operations upon them.
 * Naming Rules::                        Namespace and Component Naming Rules.
 * Internal Name Management::            How names are stored internally.
 * Namespace Example::                   An example of code using a namespace.
-* Namespace And Features::      Namespaces and other @command{gawk} features.
+* Namespace And Features::              Namespaces and other @command{gawk} features.
+* Namespace Summary::                   Summarizing namespaces.
 * Computer Arithmetic::                 A quick intro to computer math.
 * Math Definitions::                    Defining terms used.
 * MPFR features::                       The MPFR features in @command{gawk}.
@@ -31257,6 +31258,7 @@ This @value{CHAPTER} describes a feature that is specific to @command{gawk}.
 * Internal Name Management::    How names are stored internally.
 * Namespace Example::           An example of code using a namespace.
 * Namespace And Features::      Namespaces and other @command{gawk} features.
+* Namespace Summary::           Summarizing namespaces.
 @end menu
 
 @node Global Namespace
@@ -31605,6 +31607,41 @@ routines did not have provision for including a namespace. That has now
 been corrected (@pxref{Symbol table by name}).
 @xref{Extension Sample Inplace}, for a nice example of an extension that
 leverages a namespace shared by cooperating @command{awk} and C code.
+
+@node Namespace Summary
+@section Summary
+
+@itemize @value{BULLET}
+@item
+Standard @command{awk} provides a single namespace for all global
+identifiers (scalars, arrays, and functions).  This is limiting when
+one wants to develop libraries of reusable functions or function suites.
+
+@item
+@command{gawk} provides multiple namespaces by using qualified names:
+names consisting of a namespace name, a double colon, @code{::}, and a
+component name.  Namespace names might still possibly conflict, but this
+is true of any language providing namespaces, modules, or packages.
+
+@item
+The default namespace is @command{awk}. The rules for namespace and
+component names are provided in @ref{Naming Rules}. The rules are
+designed in such a way as to make namespace-aware code continue to
+look and work naturally while still providing the necessary power and
+flexibility.
+
+@item
+Other parts of @command{gawk} have been extended as necessary to integrate
+namespaces smoothly with their operation.  This applies most notably to
+the profiler / pretty-printer (@pxref{Profiling}) and to the extension
+facility (@pxref{Dynamic Extensions}).
+
+@item
+Overall, the namespace facility was designed and implemented such that
+backwards compatibility is paramount. Programs that don't use namespaces
+should see absolutely no difference in behavior when run by a namespace-capable
+version of @command{gawk}.
+@end itemize
 
 @node Arbitrary Precision Arithmetic
 @chapter Arithmetic and Arbitrary-Precision Arithmetic with @command{gawk}
