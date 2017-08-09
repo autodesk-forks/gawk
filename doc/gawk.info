@@ -28792,6 +28792,8 @@ Info file, in approximate chronological order:
      chapters that were severely dated, for which I am incredibly
      grateful.
 
+   * Juan Manuel Guerrero took over maintenance of the DJGPP port.
+
    * Arnold Robbins has been working on 'gawk' since 1988, at first
      helping David Trueman, and as the primary maintainer since around
      1994.
@@ -29905,6 +29907,8 @@ should be considered authoritative if it conflicts with this Info file.
 
 Unix and POSIX          Arnold Robbins, <arnold@skeeve.com>
 systems                 
+MS-DOS with DJGPP       Juan Manuel Guerrero, <juan.guerrero@gmx.de>
+                        
 MS-Windows with MinGW   Eli Zaretskii, <eliz@gnu.org>
                         
 OS/2                    Andreas Buening, <andreas.buening@nexgo.de>
@@ -29916,10 +29920,6 @@ z/OS (OS/390)           Daniel Richard G. <skunk@iSKUNK.ORG>
 
    If your bug is also reproducible under Unix, send a copy of your
 report to the <bug-gawk@gnu.org> email list as well.
-
-   The DJGPP port is no longer supported; it will remain in the code
-base for a while in case a volunteer wishes to take it over.  If this
-does not happen, then eventually code for this port will be removed.
 
 
 File: gawk.info,  Node: Other Versions,  Next: Installation summary,  Prev: Bugs,  Up: Installation
@@ -34812,6 +34812,7 @@ Index
 * gsub <1>:                              String Functions.    (line 139)
 * gsub() function, arguments of:         String Functions.    (line 465)
 * gsub() function, escape processing:    Gory Details.        (line   6)
+* Guerrero, Juan Manuel:                 Contributors.        (line 145)
 * h debugger command (alias for help):   Miscellaneous Debugger Commands.
                                                               (line  69)
 * Hankerson, Darrel:                     Acknowledgments.     (line  60)
@@ -35651,7 +35652,7 @@ Index
 * Robbins, Arnold <2>:                   Passwd Functions.    (line  90)
 * Robbins, Arnold <3>:                   Alarm Program.       (line   6)
 * Robbins, Arnold <4>:                   General Data Types.  (line   6)
-* Robbins, Arnold <5>:                   Contributors.        (line 145)
+* Robbins, Arnold <5>:                   Contributors.        (line 147)
 * Robbins, Arnold <6>:                   Maintainers.         (line  14)
 * Robbins, Arnold <7>:                   Future Extensions.   (line   6)
 * Robbins, Bill:                         Getline/Pipe.        (line  40)
@@ -36717,68 +36718,68 @@ Ref: Ranges and Locales-Footnote-11155908
 Ref: Ranges and Locales-Footnote-21155935
 Ref: Ranges and Locales-Footnote-31156170
 Node: Contributors1156391
-Node: History summary1161951
-Node: Installation1163331
-Node: Gawk Distribution1164275
-Node: Getting1164759
-Node: Extracting1165720
-Node: Distribution contents1167358
-Node: Unix Installation1173700
-Node: Quick Installation1174382
-Node: Shell Startup Files1176796
-Node: Additional Configuration Options1177885
-Node: Configuration Philosophy1179874
-Node: Non-Unix Installation1182243
-Node: PC Installation1182703
-Node: PC Binary Installation1183541
-Node: PC Compiling1183976
-Node: PC Using1185093
-Node: Cygwin1188138
-Node: MSYS1188908
-Node: VMS Installation1189409
-Node: VMS Compilation1190200
-Ref: VMS Compilation-Footnote-11191429
-Node: VMS Dynamic Extensions1191487
-Node: VMS Installation Details1193172
-Node: VMS Running1195425
-Node: VMS GNV1199704
-Node: VMS Old Gawk1200439
-Node: Bugs1200910
-Node: Bug address1201573
-Node: Usenet1203970
-Node: Maintainers1204747
-Node: Other Versions1206123
-Node: Installation summary1212707
-Node: Notes1213742
-Node: Compatibility Mode1214607
-Node: Additions1215389
-Node: Accessing The Source1216314
-Node: Adding Code1217749
-Node: New Ports1223967
-Node: Derived Files1228455
-Ref: Derived Files-Footnote-11233940
-Ref: Derived Files-Footnote-21233975
-Ref: Derived Files-Footnote-31234573
-Node: Future Extensions1234687
-Node: Implementation Limitations1235345
-Node: Extension Design1236528
-Node: Old Extension Problems1237682
-Ref: Old Extension Problems-Footnote-11239200
-Node: Extension New Mechanism Goals1239257
-Ref: Extension New Mechanism Goals-Footnote-11242621
-Node: Extension Other Design Decisions1242810
-Node: Extension Future Growth1244923
-Node: Old Extension Mechanism1245759
-Node: Notes summary1247522
-Node: Basic Concepts1248704
-Node: Basic High Level1249385
-Ref: figure-general-flow1249667
-Ref: figure-process-flow1250352
-Ref: Basic High Level-Footnote-11253653
-Node: Basic Data Typing1253838
-Node: Glossary1257166
-Node: Copying1289113
-Node: GNU Free Documentation License1326652
-Node: Index1351770
+Node: History summary1162019
+Node: Installation1163399
+Node: Gawk Distribution1164343
+Node: Getting1164827
+Node: Extracting1165788
+Node: Distribution contents1167426
+Node: Unix Installation1173768
+Node: Quick Installation1174450
+Node: Shell Startup Files1176864
+Node: Additional Configuration Options1177953
+Node: Configuration Philosophy1179942
+Node: Non-Unix Installation1182311
+Node: PC Installation1182771
+Node: PC Binary Installation1183609
+Node: PC Compiling1184044
+Node: PC Using1185161
+Node: Cygwin1188206
+Node: MSYS1188976
+Node: VMS Installation1189477
+Node: VMS Compilation1190268
+Ref: VMS Compilation-Footnote-11191497
+Node: VMS Dynamic Extensions1191555
+Node: VMS Installation Details1193240
+Node: VMS Running1195493
+Node: VMS GNV1199772
+Node: VMS Old Gawk1200507
+Node: Bugs1200978
+Node: Bug address1201641
+Node: Usenet1204038
+Node: Maintainers1204815
+Node: Other Versions1206076
+Node: Installation summary1212660
+Node: Notes1213695
+Node: Compatibility Mode1214560
+Node: Additions1215342
+Node: Accessing The Source1216267
+Node: Adding Code1217702
+Node: New Ports1223920
+Node: Derived Files1228408
+Ref: Derived Files-Footnote-11233893
+Ref: Derived Files-Footnote-21233928
+Ref: Derived Files-Footnote-31234526
+Node: Future Extensions1234640
+Node: Implementation Limitations1235298
+Node: Extension Design1236481
+Node: Old Extension Problems1237635
+Ref: Old Extension Problems-Footnote-11239153
+Node: Extension New Mechanism Goals1239210
+Ref: Extension New Mechanism Goals-Footnote-11242574
+Node: Extension Other Design Decisions1242763
+Node: Extension Future Growth1244876
+Node: Old Extension Mechanism1245712
+Node: Notes summary1247475
+Node: Basic Concepts1248657
+Node: Basic High Level1249338
+Ref: figure-general-flow1249620
+Ref: figure-process-flow1250305
+Ref: Basic High Level-Footnote-11253606
+Node: Basic Data Typing1253791
+Node: Glossary1257119
+Node: Copying1289066
+Node: GNU Free Documentation License1326605
+Node: Index1351723
 
 End Tag Table
