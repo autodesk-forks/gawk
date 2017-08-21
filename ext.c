@@ -159,7 +159,7 @@ make_builtin(const char *name_space, const awk_ext_func_t *funcinfo)
 
 	b = bcalloc(Op_symbol, 1, 0);
 	b->extfunc = funcinfo->function;
-	b->c_func = (awk_ext_func_t *) funcinfo;
+	b->c_function = (awk_ext_func_t *) funcinfo;
 
 	/* NB: extension sub must return something */
 
