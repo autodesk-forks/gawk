@@ -28587,15 +28587,15 @@ POSIX 'awk', in the order they were added to 'gawk'.
         - Input parsers can now override the default field parsing
           mechanism by specifying explicit locations.
 
-   * Support for MirBSD was removed.
-
-   * Support for GNU/Linux on Alpha was removed.
-
    * Shell startup files are supplied with the distribution and
      installed by 'make install' (*note Shell Startup Files::).
 
    * The 'igawk' program and its manual page are no longer installed
      when 'gawk' is built.  *Note Igawk Program::.
+
+   * Support for MirBSD was removed.
+
+   * Support for GNU/Linux on Alpha was removed.
 
 
 File: gawk.info,  Node: Common Extensions,  Next: Ranges and Locales,  Prev: Feature History,  Up: Language History
@@ -28784,7 +28784,7 @@ Info file, in approximate chronological order:
    * Fred Fish provided the port to Amiga systems and its documentation.
      (With Fred's sad passing, this is no longer supported.)
 
-   * Scott Deifik maintained the MS-DOS port using DJGPP.
+   * Scott Deifik formerly maintained the MS-DOS port using DJGPP.
 
    * Eli Zaretskii currently maintains the MS-Windows port using MinGW.
 
@@ -34214,7 +34214,6 @@ Index
 * default keyword:                       Switch Statement.    (line   6)
 * Deifik, Scott:                         Acknowledgments.     (line  60)
 * Deifik, Scott <1>:                     Contributors.        (line  54)
-* Deifik, Scott <2>:                     Maintainers.         (line  14)
 * delete ARRAY:                          Delete.              (line  39)
 * delete breakpoint at location:         Breakpoint Control.  (line  36)
 * delete breakpoint by number:           Breakpoint Control.  (line  64)
@@ -34905,6 +34904,7 @@ Index
 * gsub() function, escape processing:    Gory Details.        (line   6)
 * Guerrero, Juan Manuel:                 Acknowledgments.     (line  60)
 * Guerrero, Juan Manuel <1>:             Contributors.        (line 148)
+* Guerrero, Juan Manuel <2>:             Maintainers.         (line  14)
 * h debugger command (alias for help):   Miscellaneous Debugger Commands.
                                                               (line  69)
 * Hankerson, Darrel:                     Acknowledgments.     (line  60)
@@ -36809,68 +36809,68 @@ Ref: Ranges and Locales-Footnote-11159509
 Ref: Ranges and Locales-Footnote-21159536
 Ref: Ranges and Locales-Footnote-31159771
 Node: Contributors1159992
-Node: History summary1165818
-Node: Installation1167198
-Node: Gawk Distribution1168142
-Node: Getting1168626
-Node: Extracting1169587
-Node: Distribution contents1171225
-Node: Unix Installation1177705
-Node: Quick Installation1178387
-Node: Shell Startup Files1180801
-Node: Additional Configuration Options1181890
-Node: Configuration Philosophy1183879
-Node: Non-Unix Installation1186248
-Node: PC Installation1186708
-Node: PC Binary Installation1187546
-Node: PC Compiling1187981
-Node: PC Using1189098
-Node: Cygwin1192143
-Node: MSYS1192913
-Node: VMS Installation1193414
-Node: VMS Compilation1194205
-Ref: VMS Compilation-Footnote-11195434
-Node: VMS Dynamic Extensions1195492
-Node: VMS Installation Details1197177
-Node: VMS Running1199430
-Node: VMS GNV1203709
-Node: VMS Old Gawk1204444
-Node: Bugs1204915
-Node: Bug address1205578
-Node: Usenet1207975
-Node: Maintainers1208752
-Node: Other Versions1210013
-Node: Installation summary1216597
-Node: Notes1217632
-Node: Compatibility Mode1218497
-Node: Additions1219279
-Node: Accessing The Source1220204
-Node: Adding Code1221639
-Node: New Ports1227857
-Node: Derived Files1232345
-Ref: Derived Files-Footnote-11237830
-Ref: Derived Files-Footnote-21237865
-Ref: Derived Files-Footnote-31238463
-Node: Future Extensions1238577
-Node: Implementation Limitations1239235
-Node: Extension Design1240418
-Node: Old Extension Problems1241572
-Ref: Old Extension Problems-Footnote-11243090
-Node: Extension New Mechanism Goals1243147
-Ref: Extension New Mechanism Goals-Footnote-11246511
-Node: Extension Other Design Decisions1246700
-Node: Extension Future Growth1248813
-Node: Old Extension Mechanism1249649
-Node: Notes summary1251412
-Node: Basic Concepts1252594
-Node: Basic High Level1253275
-Ref: figure-general-flow1253557
-Ref: figure-process-flow1254242
-Ref: Basic High Level-Footnote-11257543
-Node: Basic Data Typing1257728
-Node: Glossary1261056
-Node: Copying1293003
-Node: GNU Free Documentation License1330542
-Node: Index1355660
+Node: History summary1165827
+Node: Installation1167207
+Node: Gawk Distribution1168151
+Node: Getting1168635
+Node: Extracting1169596
+Node: Distribution contents1171234
+Node: Unix Installation1177714
+Node: Quick Installation1178396
+Node: Shell Startup Files1180810
+Node: Additional Configuration Options1181899
+Node: Configuration Philosophy1183888
+Node: Non-Unix Installation1186257
+Node: PC Installation1186717
+Node: PC Binary Installation1187555
+Node: PC Compiling1187990
+Node: PC Using1189107
+Node: Cygwin1192152
+Node: MSYS1192922
+Node: VMS Installation1193423
+Node: VMS Compilation1194214
+Ref: VMS Compilation-Footnote-11195443
+Node: VMS Dynamic Extensions1195501
+Node: VMS Installation Details1197186
+Node: VMS Running1199439
+Node: VMS GNV1203718
+Node: VMS Old Gawk1204453
+Node: Bugs1204924
+Node: Bug address1205587
+Node: Usenet1207984
+Node: Maintainers1208761
+Node: Other Versions1210022
+Node: Installation summary1216606
+Node: Notes1217641
+Node: Compatibility Mode1218506
+Node: Additions1219288
+Node: Accessing The Source1220213
+Node: Adding Code1221648
+Node: New Ports1227866
+Node: Derived Files1232354
+Ref: Derived Files-Footnote-11237839
+Ref: Derived Files-Footnote-21237874
+Ref: Derived Files-Footnote-31238472
+Node: Future Extensions1238586
+Node: Implementation Limitations1239244
+Node: Extension Design1240427
+Node: Old Extension Problems1241581
+Ref: Old Extension Problems-Footnote-11243099
+Node: Extension New Mechanism Goals1243156
+Ref: Extension New Mechanism Goals-Footnote-11246520
+Node: Extension Other Design Decisions1246709
+Node: Extension Future Growth1248822
+Node: Old Extension Mechanism1249658
+Node: Notes summary1251421
+Node: Basic Concepts1252603
+Node: Basic High Level1253284
+Ref: figure-general-flow1253566
+Ref: figure-process-flow1254251
+Ref: Basic High Level-Footnote-11257552
+Node: Basic Data Typing1257737
+Node: Glossary1261065
+Node: Copying1293012
+Node: GNU Free Documentation License1330551
+Node: Index1355669
 
 End Tag Table
