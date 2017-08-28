@@ -28808,7 +28808,9 @@ Info file, in approximate chronological order:
    * Stephen Davies provided the initial port to Tandem systems and its
      documentation.  (However, this is no longer supported.)  He was
      also instrumental in the initial work to integrate the byte-code
-     internals into the 'gawk' code base.
+     internals into the 'gawk' code base.  Additionally, he did most of
+     the work enabling the pretty-printer to preserve and output
+     comments.
 
    * Matthew Woehlke provided improvements for Tandem's POSIX-compliant
      systems.
@@ -33746,7 +33748,7 @@ Index
                                                               (line  70)
 * beginfile() user-defined function:     Filetrans Function.  (line  62)
 * Bentley, Jon:                          Glossary.            (line 206)
-* Benzinger, Michael:                    Contributors.        (line  98)
+* Benzinger, Michael:                    Contributors.        (line 100)
 * Berry, Karl:                           Acknowledgments.     (line  33)
 * Berry, Karl <1>:                       Acknowledgments.     (line  75)
 * Berry, Karl <2>:                       Ranges and Locales.  (line  74)
@@ -33827,12 +33829,12 @@ Index
 * Brian Kernighan's awk, source code:    Other Versions.      (line  13)
 * Brini, Davide:                         Signature Program.   (line   6)
 * Brink, Jeroen:                         DOS Quoting.         (line  10)
-* Broder, Alan J.:                       Contributors.        (line  89)
-* Brown, Martin:                         Contributors.        (line  83)
+* Broder, Alan J.:                       Contributors.        (line  91)
+* Brown, Martin:                         Contributors.        (line  85)
 * BSD-based operating systems:           Glossary.            (line 748)
 * bt debugger command (alias for backtrace): Execution Stack. (line  13)
 * Buening, Andreas:                      Acknowledgments.     (line  60)
-* Buening, Andreas <1>:                  Contributors.        (line  93)
+* Buening, Andreas <1>:                  Contributors.        (line  95)
 * Buening, Andreas <2>:                  Maintainers.         (line  14)
 * buffering, input/output:               I/O Functions.       (line 166)
 * buffering, input/output <1>:           Two-way I/O.         (line  53)
@@ -33908,7 +33910,7 @@ Index
 * collating elements:                    Bracket Expressions. (line  86)
 * collating symbols:                     Bracket Expressions. (line  93)
 * Colombo, Antonio:                      Acknowledgments.     (line  60)
-* Colombo, Antonio <1>:                  Contributors.        (line 141)
+* Colombo, Antonio <1>:                  Contributors.        (line 143)
 * columns, aligning:                     Print Examples.      (line  69)
 * columns, cutting:                      Cut Program.         (line   6)
 * comma (,), in range patterns:          Ranges.              (line   6)
@@ -34022,7 +34024,7 @@ Index
 * csh utility, POSIXLY_CORRECT environment variable: Options. (line 382)
 * csh utility, |& operator, comparison with: Two-way I/O.     (line  27)
 * ctime() user-defined function:         Function Example.    (line  74)
-* Curreli, Marco:                        Contributors.        (line 145)
+* Curreli, Marco:                        Contributors.        (line 147)
 * currency symbols, localization:        Explaining gettext.  (line 104)
 * current system time:                   Time Functions.      (line  68)
 * custom.h file:                         Configuration Philosophy.
@@ -34887,7 +34889,7 @@ Index
 * GNU/Linux:                             Manual History.      (line  28)
 * GNU/Linux <1>:                         I18N Example.        (line  57)
 * GNU/Linux <2>:                         Glossary.            (line 748)
-* Gordon, Assaf:                         Contributors.        (line 106)
+* Gordon, Assaf:                         Contributors.        (line 108)
 * GPL (General Public License):          Manual History.      (line  11)
 * GPL (General Public License) <1>:      Glossary.            (line 396)
 * GPL (General Public License), printing: Options.            (line  92)
@@ -34903,16 +34905,16 @@ Index
 * gsub() function, arguments of:         String Functions.    (line 465)
 * gsub() function, escape processing:    Gory Details.        (line   6)
 * Guerrero, Juan Manuel:                 Acknowledgments.     (line  60)
-* Guerrero, Juan Manuel <1>:             Contributors.        (line 148)
+* Guerrero, Juan Manuel <1>:             Contributors.        (line 150)
 * Guerrero, Juan Manuel <2>:             Maintainers.         (line  14)
 * h debugger command (alias for help):   Miscellaneous Debugger Commands.
                                                               (line  69)
 * Hankerson, Darrel:                     Acknowledgments.     (line  60)
 * Hankerson, Darrel <1>:                 Contributors.        (line  61)
-* Haque, John:                           Contributors.        (line 109)
+* Haque, John:                           Contributors.        (line 111)
 * Hartholz, Elaine:                      Acknowledgments.     (line  38)
 * Hartholz, Marshall:                    Acknowledgments.     (line  38)
-* Hasegawa, Isamu:                       Contributors.        (line  95)
+* Hasegawa, Isamu:                       Contributors.        (line  97)
 * help debugger command:                 Miscellaneous Debugger Commands.
                                                               (line  69)
 * hexadecimal numbers:                   Nondecimal-numbers.  (line   6)
@@ -35177,7 +35179,7 @@ Index
 * mailing list, GNITS:                   Acknowledgments.     (line  52)
 * Malmberg, John:                        Acknowledgments.     (line  60)
 * Malmberg, John <1>:                    Maintainers.         (line  14)
-* Malmberg, John E.:                     Contributors.        (line 138)
+* Malmberg, John E.:                     Contributors.        (line 140)
 * mark parity:                           Ordinal Functions.   (line  45)
 * marked string extraction (internationalization): String Extraction.
                                                               (line   6)
@@ -35198,7 +35200,7 @@ Index
 * mawk utility <4>:                      Other Versions.      (line  48)
 * maximum precision supported by MPFR library: Auto-set.      (line 255)
 * McIlroy, Doug:                         Glossary.            (line 257)
-* McPhee, Patrick:                       Contributors.        (line 101)
+* McPhee, Patrick:                       Contributors.        (line 103)
 * message object files:                  Explaining gettext.  (line  42)
 * message object files, converting from portable object files: I18N Example.
                                                               (line  66)
@@ -35387,7 +35389,7 @@ Index
 * output, standard:                      Special FD.          (line   6)
 * p debugger command (alias for print):  Viewing And Changing Data.
                                                               (line  35)
-* Papadopoulos, Panos:                   Contributors.        (line 129)
+* Papadopoulos, Panos:                   Contributors.        (line 131)
 * parent process ID of gawk process:     Auto-set.            (line 230)
 * parentheses (), in a profile:          Profiling.           (line 146)
 * parentheses (), regexp operator:       Regexp Operators.    (line  81)
@@ -35413,7 +35415,7 @@ Index
 * percent sign (%), %= operator <1>:     Precedence.          (line  94)
 * period (.), regexp operator:           Regexp Operators.    (line  44)
 * Perl:                                  Future Extensions.   (line   6)
-* Peters, Arno:                          Contributors.        (line  86)
+* Peters, Arno:                          Contributors.        (line  88)
 * Peterson, Hal:                         Contributors.        (line  40)
 * pipe, closing:                         Close Files And Pipes.
                                                               (line   6)
@@ -35742,7 +35744,7 @@ Index
 * Robbins, Arnold <2>:                   Passwd Functions.    (line  90)
 * Robbins, Arnold <3>:                   Alarm Program.       (line   6)
 * Robbins, Arnold <4>:                   General Data Types.  (line   6)
-* Robbins, Arnold <5>:                   Contributors.        (line 150)
+* Robbins, Arnold <5>:                   Contributors.        (line 152)
 * Robbins, Arnold <6>:                   Maintainers.         (line  14)
 * Robbins, Arnold <7>:                   Future Extensions.   (line   6)
 * Robbins, Bill:                         Getline/Pipe.        (line  40)
@@ -35783,7 +35785,7 @@ Index
 * scanning multidimensional arrays:      Multiscanning.       (line  11)
 * Schorr, Andrew:                        Acknowledgments.     (line  60)
 * Schorr, Andrew <1>:                    Auto-set.            (line 347)
-* Schorr, Andrew <2>:                    Contributors.        (line 134)
+* Schorr, Andrew <2>:                    Contributors.        (line 136)
 * Schreiber, Bert:                       Acknowledgments.     (line  38)
 * Schreiber, Rita:                       Acknowledgments.     (line  38)
 * search and replace in strings:         String Functions.    (line  89)
@@ -36238,7 +36240,7 @@ Index
 * walk_array() user-defined function:    Walking Arrays.      (line  14)
 * Wall, Larry:                           Array Intro.         (line   6)
 * Wall, Larry <1>:                       Future Extensions.   (line   6)
-* Wallin, Anders:                        Contributors.        (line 104)
+* Wallin, Anders:                        Contributors.        (line 106)
 * warnings, issuing:                     Options.             (line 208)
 * watch debugger command:                Viewing And Changing Data.
                                                               (line  66)
@@ -36257,7 +36259,7 @@ Index
 * whitespace, functions, calling:        Calling Built-in.    (line  10)
 * whitespace, newlines as:               Options.             (line 287)
 * Williams, Kent:                        Contributors.        (line  35)
-* Woehlke, Matthew:                      Contributors.        (line  80)
+* Woehlke, Matthew:                      Contributors.        (line  82)
 * Woods, John:                           Contributors.        (line  28)
 * word boundaries, matching:             GNU Regexp Operators.
                                                               (line  41)
@@ -36274,7 +36276,7 @@ Index
 * xgettext utility:                      String Extraction.   (line  13)
 * xor:                                   Bitwise Functions.   (line  57)
 * XOR bitwise operation:                 Bitwise Functions.   (line   6)
-* Yawitz, Efraim:                        Contributors.        (line 132)
+* Yawitz, Efraim:                        Contributors.        (line 134)
 * Zaretskii, Eli:                        Acknowledgments.     (line  60)
 * Zaretskii, Eli <1>:                    Contributors.        (line  56)
 * Zaretskii, Eli <2>:                    Maintainers.         (line  14)
@@ -36809,68 +36811,68 @@ Ref: Ranges and Locales-Footnote-11159509
 Ref: Ranges and Locales-Footnote-21159536
 Ref: Ranges and Locales-Footnote-31159771
 Node: Contributors1159992
-Node: History summary1165827
-Node: Installation1167207
-Node: Gawk Distribution1168151
-Node: Getting1168635
-Node: Extracting1169596
-Node: Distribution contents1171234
-Node: Unix Installation1177714
-Node: Quick Installation1178396
-Node: Shell Startup Files1180810
-Node: Additional Configuration Options1181899
-Node: Configuration Philosophy1183888
-Node: Non-Unix Installation1186257
-Node: PC Installation1186717
-Node: PC Binary Installation1187555
-Node: PC Compiling1187990
-Node: PC Using1189107
-Node: Cygwin1192152
-Node: MSYS1192922
-Node: VMS Installation1193423
-Node: VMS Compilation1194214
-Ref: VMS Compilation-Footnote-11195443
-Node: VMS Dynamic Extensions1195501
-Node: VMS Installation Details1197186
-Node: VMS Running1199439
-Node: VMS GNV1203718
-Node: VMS Old Gawk1204453
-Node: Bugs1204924
-Node: Bug address1205587
-Node: Usenet1207984
-Node: Maintainers1208761
-Node: Other Versions1210022
-Node: Installation summary1216606
-Node: Notes1217641
-Node: Compatibility Mode1218506
-Node: Additions1219288
-Node: Accessing The Source1220213
-Node: Adding Code1221648
-Node: New Ports1227866
-Node: Derived Files1232354
-Ref: Derived Files-Footnote-11237839
-Ref: Derived Files-Footnote-21237874
-Ref: Derived Files-Footnote-31238472
-Node: Future Extensions1238586
-Node: Implementation Limitations1239244
-Node: Extension Design1240427
-Node: Old Extension Problems1241581
-Ref: Old Extension Problems-Footnote-11243099
-Node: Extension New Mechanism Goals1243156
-Ref: Extension New Mechanism Goals-Footnote-11246520
-Node: Extension Other Design Decisions1246709
-Node: Extension Future Growth1248822
-Node: Old Extension Mechanism1249658
-Node: Notes summary1251421
-Node: Basic Concepts1252603
-Node: Basic High Level1253284
-Ref: figure-general-flow1253566
-Ref: figure-process-flow1254251
-Ref: Basic High Level-Footnote-11257552
-Node: Basic Data Typing1257737
-Node: Glossary1261065
-Node: Copying1293012
-Node: GNU Free Documentation License1330551
-Node: Index1355669
+Node: History summary1165937
+Node: Installation1167317
+Node: Gawk Distribution1168261
+Node: Getting1168745
+Node: Extracting1169706
+Node: Distribution contents1171344
+Node: Unix Installation1177824
+Node: Quick Installation1178506
+Node: Shell Startup Files1180920
+Node: Additional Configuration Options1182009
+Node: Configuration Philosophy1183998
+Node: Non-Unix Installation1186367
+Node: PC Installation1186827
+Node: PC Binary Installation1187665
+Node: PC Compiling1188100
+Node: PC Using1189217
+Node: Cygwin1192262
+Node: MSYS1193032
+Node: VMS Installation1193533
+Node: VMS Compilation1194324
+Ref: VMS Compilation-Footnote-11195553
+Node: VMS Dynamic Extensions1195611
+Node: VMS Installation Details1197296
+Node: VMS Running1199549
+Node: VMS GNV1203828
+Node: VMS Old Gawk1204563
+Node: Bugs1205034
+Node: Bug address1205697
+Node: Usenet1208094
+Node: Maintainers1208871
+Node: Other Versions1210132
+Node: Installation summary1216716
+Node: Notes1217751
+Node: Compatibility Mode1218616
+Node: Additions1219398
+Node: Accessing The Source1220323
+Node: Adding Code1221758
+Node: New Ports1227976
+Node: Derived Files1232464
+Ref: Derived Files-Footnote-11237949
+Ref: Derived Files-Footnote-21237984
+Ref: Derived Files-Footnote-31238582
+Node: Future Extensions1238696
+Node: Implementation Limitations1239354
+Node: Extension Design1240537
+Node: Old Extension Problems1241691
+Ref: Old Extension Problems-Footnote-11243209
+Node: Extension New Mechanism Goals1243266
+Ref: Extension New Mechanism Goals-Footnote-11246630
+Node: Extension Other Design Decisions1246819
+Node: Extension Future Growth1248932
+Node: Old Extension Mechanism1249768
+Node: Notes summary1251531
+Node: Basic Concepts1252713
+Node: Basic High Level1253394
+Ref: figure-general-flow1253676
+Ref: figure-process-flow1254361
+Ref: Basic High Level-Footnote-11257662
+Node: Basic Data Typing1257847
+Node: Glossary1261175
+Node: Copying1293122
+Node: GNU Free Documentation License1330661
+Node: Index1355779
 
 End Tag Table
