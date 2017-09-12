@@ -30184,9 +30184,9 @@ B.6 Summary
           ./configure && make && make check
 
    * 'gawk' may be built on non-POSIX systems as well.  The currently
-     supported systems are MS-Windows using MSYS, MinGW, and Cygwin, and
-     both Vax/VMS and OpenVMS. Instructions for each system are included
-     in this major node.
+     supported systems are MS-Windows using MSYS, DJGPP, MinGW, and
+     Cygwin, and both Vax/VMS and OpenVMS. Instructions for each system
+     are included in this major node.
 
    * Bug reports should be sent via email to <bug-gawk@gnu.org>.  Bug
      reports should be in English and should include the version of
@@ -36843,36 +36843,36 @@ Node: Usenet1208094
 Node: Maintainers1208871
 Node: Other Versions1210132
 Node: Installation summary1216716
-Node: Notes1217751
-Node: Compatibility Mode1218616
-Node: Additions1219398
-Node: Accessing The Source1220323
-Node: Adding Code1221758
-Node: New Ports1227976
-Node: Derived Files1232464
-Ref: Derived Files-Footnote-11237949
-Ref: Derived Files-Footnote-21237984
-Ref: Derived Files-Footnote-31238582
-Node: Future Extensions1238696
-Node: Implementation Limitations1239354
-Node: Extension Design1240537
-Node: Old Extension Problems1241691
-Ref: Old Extension Problems-Footnote-11243209
-Node: Extension New Mechanism Goals1243266
-Ref: Extension New Mechanism Goals-Footnote-11246630
-Node: Extension Other Design Decisions1246819
-Node: Extension Future Growth1248932
-Node: Old Extension Mechanism1249768
-Node: Notes summary1251531
-Node: Basic Concepts1252713
-Node: Basic High Level1253394
-Ref: figure-general-flow1253676
-Ref: figure-process-flow1254361
-Ref: Basic High Level-Footnote-11257662
-Node: Basic Data Typing1257847
-Node: Glossary1261175
-Node: Copying1293122
-Node: GNU Free Documentation License1330661
-Node: Index1355779
+Node: Notes1217758
+Node: Compatibility Mode1218623
+Node: Additions1219405
+Node: Accessing The Source1220330
+Node: Adding Code1221765
+Node: New Ports1227983
+Node: Derived Files1232471
+Ref: Derived Files-Footnote-11237956
+Ref: Derived Files-Footnote-21237991
+Ref: Derived Files-Footnote-31238589
+Node: Future Extensions1238703
+Node: Implementation Limitations1239361
+Node: Extension Design1240544
+Node: Old Extension Problems1241698
+Ref: Old Extension Problems-Footnote-11243216
+Node: Extension New Mechanism Goals1243273
+Ref: Extension New Mechanism Goals-Footnote-11246637
+Node: Extension Other Design Decisions1246826
+Node: Extension Future Growth1248939
+Node: Old Extension Mechanism1249775
+Node: Notes summary1251538
+Node: Basic Concepts1252720
+Node: Basic High Level1253401
+Ref: figure-general-flow1253683
+Ref: figure-process-flow1254368
+Ref: Basic High Level-Footnote-11257669
+Node: Basic Data Typing1257854
+Node: Glossary1261182
+Node: Copying1293129
+Node: GNU Free Documentation License1330668
+Node: Index1355786
 
 End Tag Table
