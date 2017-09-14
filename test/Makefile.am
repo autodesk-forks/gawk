@@ -2459,6 +2459,11 @@ nsbad_cmd:
 	@AWKPATH="$(srcdir)" $(AWK) -v foo:bar=3 -v foo:::blat=4 1 /dev/null >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
+nonfatal1:
+	@echo $@
+	@AWKPATH="$(srcdir)" $(AWK) -f $@.awk 2>&1 | $(AWK) '{print gensub(/invalid:.*$$/, "invalid", 1, $$0)}' >_$@ || echo EXIT CODE: $$? >>_$@
+	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+
 # Targets generated for other tests:
 include Maketests
 
