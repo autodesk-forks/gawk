@@ -992,11 +992,11 @@ r_make_string(const gawk_api_t *api,	/* needed for emalloc */
 	return r_make_string_type(api, ext_id, string, length, duplicate, result, AWK_STRING);
 }
 
-#define make_const_string(str, len, result)	r_make_string(api, ext_id, str, len, 1, result)
-#define make_malloced_string(str, len, result)	r_make_string(api, ext_id, str, len, 0, result)
+#define make_const_string(str, len, result)	r_make_string(api, ext_id, str, len, awk_true, result)
+#define make_malloced_string(str, len, result)	r_make_string(api, ext_id, str, len, awk_false, result)
 
-#define make_const_regex(str, len, result)	r_make_string_type(api, ext_id, str, len, 1, result, AWK_REGEX)
-#define make_malloced_regex(str, len, result)	r_make_string_type(api, ext_id, str, len, 0, result, AWK_REGEX)
+#define make_const_regex(str, len, result)	r_make_string_type(api, ext_id, str, len, awk_true, result, AWK_REGEX)
+#define make_malloced_regex(str, len, result)	r_make_string_type(api, ext_id, str, len, awk_false, result, AWK_REGEX)
 
 /*
  * Note: The caller may not create a STRNUM, but it can create a string that is
@@ -1112,7 +1112,7 @@ int dl_load(const gawk_api_t *const api_p, awk_ext_id_t id)  \
 	int errors = 0; \
 \
 	api = api_p; \
-	ext_id = id; \
+	ext_id = (void **) id; \
 \
 	if (api->major_version != GAWK_API_MAJOR_VERSION \
 	    || api->minor_version < GAWK_API_MINOR_VERSION) { \
