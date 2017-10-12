@@ -1,3 +1,8 @@
+2017-10-12         Arnold D. Robbins     <arnold@skeeve.com>
+
+	* gawk.1: Documents namespaces.
+	* awkcard.in: Ditto.
+
 2017-10-10         Arnold D. Robbins     <arnold@skeeve.com>
 
 	* gawktexi.in (Readfile Function): Fix the code for the naive
