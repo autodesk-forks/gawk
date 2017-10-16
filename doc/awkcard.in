@@ -445,7 +445,9 @@ and optional function definitions.
 .sp .5
 	\*(CB\*(FC@include "\*(FIfilename\*(FC"
 .br
-	\*(FC@load "\*(FIfilename\*(FC"\*(CD
+	\*(FC@load "\*(FIfilename\*(FC"
+.br
+	\*(FC@namespace "\*(FInamespace\*(FC"\*(CD
 .br
 	\*(FIpattern\*(FC	{ \*(FIaction statements\*(FC }\*(FR
 .br
