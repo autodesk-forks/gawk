@@ -29407,6 +29407,12 @@ command line when compiling 'gawk' from scratch, including:
      desirable, but it may bring you some slight performance
      improvement.
 
+'--enable-versioned-extension-dir'
+     Use a versioned directory for extensions.  The directory name will
+     include the major and minor API versions in it.  This makes it
+     possible to keep extensions for different API versions on the same
+     system without their conflicting with one another.
+
    Use the command './configure --help' to see the full list of options
 supplied by 'configure'.
 
@@ -33310,6 +33316,8 @@ Index
 * --dump-variables option:               Options.             (line  97)
 * --dump-variables option, using for library functions: Library Names.
                                                               (line  45)
+* --enable-versioned-extension-dir configuration option: Additional Configuration Options.
+                                                              (line  42)
 * --exec option:                         Options.             (line 146)
 * --field-separator option:              Options.             (line  21)
 * --file option:                         Options.             (line  25)
@@ -34049,6 +34057,8 @@ Index
                                                               (line  32)
 * configuration option, --disable-nls:   Additional Configuration Options.
                                                               (line  37)
+* configuration option, --enable-versioned-extension-dir: Additional Configuration Options.
+                                                              (line  42)
 * configuration options, gawk:           Additional Configuration Options.
                                                               (line   6)
 * constant regexps:                      Regexp Usage.        (line  57)
@@ -36898,58 +36908,58 @@ Node: Unix Installation1179981
 Node: Quick Installation1180663
 Node: Shell Startup Files1183077
 Node: Additional Configuration Options1184166
-Node: Configuration Philosophy1186027
-Node: Non-Unix Installation1188396
-Node: PC Installation1188856
-Node: PC Binary Installation1189694
-Node: PC Compiling1190129
-Node: PC Using1191246
-Node: Cygwin1194291
-Node: MSYS1195061
-Node: VMS Installation1195562
-Node: VMS Compilation1196353
-Ref: VMS Compilation-Footnote-11197582
-Node: VMS Dynamic Extensions1197640
-Node: VMS Installation Details1199325
-Node: VMS Running1201578
-Node: VMS GNV1205857
-Node: VMS Old Gawk1206592
-Node: Bugs1207063
-Node: Bug address1207726
-Node: Usenet1210518
-Node: Maintainers1211295
-Node: Other Versions1212556
-Node: Installation summary1219318
-Node: Notes1220520
-Node: Compatibility Mode1221385
-Node: Additions1222167
-Node: Accessing The Source1223092
-Node: Adding Code1224529
-Node: New Ports1230748
-Node: Derived Files1235236
-Ref: Derived Files-Footnote-11240882
-Ref: Derived Files-Footnote-21240917
-Ref: Derived Files-Footnote-31241515
-Node: Future Extensions1241629
-Node: Implementation Limitations1242287
-Node: Extension Design1243470
-Node: Old Extension Problems1244624
-Ref: Old Extension Problems-Footnote-11246142
-Node: Extension New Mechanism Goals1246199
-Ref: Extension New Mechanism Goals-Footnote-11249563
-Node: Extension Other Design Decisions1249752
-Node: Extension Future Growth1251865
-Node: Old Extension Mechanism1252701
-Node: Notes summary1254464
-Node: Basic Concepts1255646
-Node: Basic High Level1256327
-Ref: figure-general-flow1256609
-Ref: figure-process-flow1257294
-Ref: Basic High Level-Footnote-11260595
-Node: Basic Data Typing1260780
-Node: Glossary1264108
-Node: Copying1295946
-Node: GNU Free Documentation License1333485
-Node: Index1358603
+Node: Configuration Philosophy1186331
+Node: Non-Unix Installation1188700
+Node: PC Installation1189160
+Node: PC Binary Installation1189998
+Node: PC Compiling1190433
+Node: PC Using1191550
+Node: Cygwin1194595
+Node: MSYS1195365
+Node: VMS Installation1195866
+Node: VMS Compilation1196657
+Ref: VMS Compilation-Footnote-11197886
+Node: VMS Dynamic Extensions1197944
+Node: VMS Installation Details1199629
+Node: VMS Running1201882
+Node: VMS GNV1206161
+Node: VMS Old Gawk1206896
+Node: Bugs1207367
+Node: Bug address1208030
+Node: Usenet1210822
+Node: Maintainers1211599
+Node: Other Versions1212860
+Node: Installation summary1219622
+Node: Notes1220824
+Node: Compatibility Mode1221689
+Node: Additions1222471
+Node: Accessing The Source1223396
+Node: Adding Code1224833
+Node: New Ports1231052
+Node: Derived Files1235540
+Ref: Derived Files-Footnote-11241186
+Ref: Derived Files-Footnote-21241221
+Ref: Derived Files-Footnote-31241819
+Node: Future Extensions1241933
+Node: Implementation Limitations1242591
+Node: Extension Design1243774
+Node: Old Extension Problems1244928
+Ref: Old Extension Problems-Footnote-11246446
+Node: Extension New Mechanism Goals1246503
+Ref: Extension New Mechanism Goals-Footnote-11249867
+Node: Extension Other Design Decisions1250056
+Node: Extension Future Growth1252169
+Node: Old Extension Mechanism1253005
+Node: Notes summary1254768
+Node: Basic Concepts1255950
+Node: Basic High Level1256631
+Ref: figure-general-flow1256913
+Ref: figure-process-flow1257598
+Ref: Basic High Level-Footnote-11260899
+Node: Basic Data Typing1261084
+Node: Glossary1264412
+Node: Copying1296250
+Node: GNU Free Documentation License1333789
+Node: Index1358907
 
 End Tag Table
