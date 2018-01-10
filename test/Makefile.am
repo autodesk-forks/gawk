@@ -669,6 +669,8 @@ EXTRA_DIST = \
 	mpfrrem.ok \
 	mpfrrnd.awk \
 	mpfrrnd.ok \
+	mpfrrndeval.awk \
+	mpfrrndeval.ok \
 	mpfrsort.awk \
 	mpfrsort.ok \
 	mpfrsqrt.awk \
@@ -894,6 +896,8 @@ EXTRA_DIST = \
 	prtoeval.ok \
 	pty1.awk \
 	pty1.ok \
+	pty2.awk \
+	pty2.ok \
 	rand-mpfr.ok \
 	rand.awk \
 	rand.ok \
@@ -1283,10 +1287,10 @@ GAWK_EXT_TESTS = \
 	nastyparm negtime next nondec nondec2 nonfatal1 nonfatal2 nonfatal3 \
 	nsbad nsbad_cmd nsindirect1 nsindirect2 nsprof1 nsprof2 \
 	patsplit posix printfbad1 printfbad2 printfbad3 printfbad4 printhuge \
-	procinfs profile0 profile1 profile10 profile2 profile3 profile4 \
-	profile5 profile6 profile7 profile8 profile9 pty1 \
-	rebuf reginttrad regnul1 regnul2 regx8bit reint reint2 rsgetline \
-	rsglstdin rsstart1 rsstart2 rsstart3 rstest6 \
+	procinfs profile0 profile1 profile2 profile3 profile4 profile5 profile6 \
+	profile7 profile8 profile9 profile10 pty1 pty2 \
+	rebuf regnul1 regnul2 regx8bit reginttrad reint reint2 rsgetline rsglstdin \
+	rsstart1 rsstart2 rsstart3 rstest6 \
 	shadow shadowbuiltin sortfor sortfor2 sortu sourcesplit split_after_fpat \
 	splitarg4 strftfld strftime strtonum strtonum1 switch2 symtab1 symtab2 \
 	symtab3 symtab4 symtab5 symtab6 symtab7 symtab8 symtab9 symtab10 \
@@ -1302,7 +1306,7 @@ INET_TESTS = inetdayu inetdayt inetechu inetecht
 
 MACHINE_TESTS = double1 double2 fmtspcl intformat
 
-MPFR_TESTS = mpfrnr mpfrnegzero mpfrmemok1 mpfrrem mpfrrnd mpfrieee
+MPFR_TESTS = mpfrnr mpfrnegzero mpfrmemok1 mpfrrem mpfrrnd mpfrrndeval mpfrieee
 	mpfrexprange mpfrsort mpfrsqrt mpfrbigint mpfrstrtonum mpgforcenum
 
 LOCALE_CHARSET_TESTS = \
@@ -2090,6 +2094,11 @@ mpfrrnd:
 	@$(AWK) -M -vPREC=53 -f "$(srcdir)"/$@.awk > _$@ 2>&1
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
+mpfrrndeval:
+	@echo $@
+	@$(AWK) -M -f "$(srcdir)"/$@.awk > _$@ 2>&1
+	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+
 mpfrnegzero:
 	@echo $@
 	@$(AWK) -M -f "$(srcdir)"/$@.awk > _$@ 2>&1
@@ -2411,6 +2420,14 @@ pty1:
 	@-case `uname` in \
 	*[Oo][Ss]/390*) : ;; \
 	*) AWKPATH="$(srcdir)" $(AWK) -f $@.awk  >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@ ; \
+	$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@ ;; \
+	esac
+
+pty2:
+	@echo $@
+	@-case `uname` in \
+	*[Oo][Ss]/390*) : ;; \
+	*) AWKPATH="$(srcdir)" $(AWK) -f $@.awk | od -c  >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@ ; \
 	$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@ ;; \
 	esac
 
