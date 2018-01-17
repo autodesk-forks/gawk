@@ -560,6 +560,8 @@ EXTRA_DIST = \
 	intprec.ok \
 	iobug1.awk \
 	iobug1.ok \
+	isarrayunset.awk \
+	isarrayunset.ok \
 	jarebug.awk \
 	jarebug.in \
 	jarebug.ok \
@@ -1285,7 +1287,7 @@ GAWK_EXT_TESTS = \
 	genpot gensub gensub2 gensub3 getlndir gnuops2 gnuops3 gnureops gsubind \
 	icasefs icasers id igncdym igncfs ignrcas2 ignrcas4 ignrcase incdupe \
 	incdupe2 incdupe3 incdupe4 incdupe5 incdupe6 incdupe7 include include2 \
-	indirectbuiltin indirectcall indirectcall2 intarray \
+	indirectbuiltin indirectcall indirectcall2 intarray isarrayunset \
 	lint lintexp lintindex lintint lintlength lintold lintset lintwarn \
 	manyfiles match1 match2 match3 mbstr1 mbstr2 mixed1 mktime muldimposix \
 	nastyparm negtime next nondec nondec2 nonfatal1 nonfatal2 nonfatal3 \
@@ -1400,7 +1402,7 @@ charset-tests-all:
 		$(MAKE) charset-msg-start charset-tests charset-msg-end; \
 	else \
 		echo %%%%%%%%%% Inadequate locale support: skipping charset tests. ; \
-		echo %%%%%%%%%% At least en_US.UTF-8 fr_FR.UTF-8, ru_RU.UTF-8 and ja_JP.UTF-8 are needed. ; \
+		echo %%%%%%%%%% At least en_US.UTF-8, fr_FR.UTF-8, ru_RU.UTF-8 and ja_JP.UTF-8 are needed. ; \
 	fi
 
 charset-tests: $(LOCALE_CHARSET_TESTS)
@@ -1473,9 +1475,10 @@ charset-msg-start:
 	@echo "======== Starting tests that can vary based on character set or locale support ========"
 	@echo "**************************************************************************"
 	@echo "* Some or all of these tests may fail if you have inadequate or missing  *"
-	@echo "* locale support. At least en_US.UTF-8, ru_RU.UTF-8 and ja_JP.UTF-8 are  *"
-	@echo "* needed. The el_GR.iso88597 is optional but helpful. However, if you    *"
-	@echo "* see this message, the Makefile thinks you have what you need ...       *"
+	@echo "* locale support. At least en_US.UTF-8, fr_FR.UTF-8, ru_RU.UTF-8 and     *"
+	@echo "* ja_JP.UTF-8 are needed. The el_GR.iso88597 is optional but helpful.    *"
+	@echo "* However, if you see this message, the Makefile thinks you have what    *"
+	@echo "* you need ...                                                           *"
 	@echo "**************************************************************************"
 
 charset-msg-end:
