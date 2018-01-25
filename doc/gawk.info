@@ -27682,22 +27682,22 @@ provides a number of 'gawk' extensions, including one for processing XML
 files.  This is the evolution of the original 'xgawk' (XML 'gawk')
 project.
 
-   As of this writing, there are seven extensions:
+   There are a number of extensions.  Some of the more interesting ones
+are:
 
-   * 'errno' extension
+   * 'abort' extension.  It allows you to exit immediately from your
+     'awk' program without running the 'END' rules.
 
-   * GD graphics library extension
+   * 'json' extension.  This serializes a multidimensional array into a
+     JSON string, and can deserialize a JSON string into a 'gawk' array.
+     This extension is interesting since it is written in C++ instead of
+     C.
 
-   * MPFR library extension (this provides access to a number of MPFR
-     functions that 'gawk''s native MPFR support does not)
+   * MPFR library extension.  This provides access to a number of MPFR
+     functions that 'gawk''s native MPFR support does not.
 
-   * PDF extension
-
-   * PostgreSQL extension
-
-   * Redis extension
-
-   * Select extension
+   * Select extension.  It provides functionality based on the
+     'select()' system call.
 
    * XML parser extension, using the Expat
      (https://expat.sourceforge.net) XML parsing library
@@ -27707,6 +27707,9 @@ project.
 command is as follows:
 
      git clone git://git.code.sf.net/p/gawkextlib/code gawkextlib-code
+
+   You will need to have the RapidJson (http://www.rapidjson.org) JSON
+parser library installed in order to build and use the 'json' extension.
 
    You will need to have the Expat (https://expat.sourceforge.net) XML
 parser library installed in order to build and use the XML extension.
@@ -34553,7 +34556,7 @@ Index
                                                               (line 100)
 * exp:                                   Numeric Functions.   (line  19)
 * expand utility:                        Very Simple.         (line  73)
-* Expat XML parser library:              gawkextlib.          (line  37)
+* Expat XML parser library:              gawkextlib.          (line  40)
 * exponent:                              Numeric Functions.   (line  19)
 * expressions:                           Expressions.         (line   6)
 * expressions, as patterns:              Expression Patterns. (line   6)
@@ -35749,6 +35752,7 @@ Index
 * Rankin, Pat:                           Acknowledgments.     (line  60)
 * Rankin, Pat <1>:                       Assignment Ops.      (line  99)
 * Rankin, Pat <2>:                       Contributors.        (line  38)
+* RapidJson JSON parser library:         gawkextlib.          (line  37)
 * reada() extension function:            Extension Sample Read write array.
                                                               (line  18)
 * readable data files, checking:         File Checking.       (line   6)
@@ -36919,83 +36923,83 @@ Node: Extension Sample Readfile1117449
 Node: Extension Sample Time1118544
 Node: Extension Sample API Tests1119892
 Node: gawkextlib1120384
-Node: Extension summary1122840
-Node: Extension Exercises1126542
-Node: Language History1127784
-Node: V7/SVR3.11129440
-Node: SVR41131592
-Node: POSIX1133026
-Node: BTL1134406
-Node: POSIX/GNU1135135
-Node: Feature History1140913
-Node: Common Extensions1156772
-Node: Ranges and Locales1158055
-Ref: Ranges and Locales-Footnote-11162671
-Ref: Ranges and Locales-Footnote-21162698
-Ref: Ranges and Locales-Footnote-31162933
-Node: Contributors1163154
-Node: History summary1169099
-Node: Installation1170479
-Node: Gawk Distribution1171423
-Node: Getting1171907
-Node: Extracting1172870
-Node: Distribution contents1174508
-Node: Unix Installation1180988
-Node: Quick Installation1181670
-Node: Shell Startup Files1184084
-Node: Additional Configuration Options1185173
-Node: Configuration Philosophy1187338
-Node: Non-Unix Installation1189707
-Node: PC Installation1190167
-Node: PC Binary Installation1191005
-Node: PC Compiling1191440
-Node: PC Using1192557
-Node: Cygwin1195602
-Node: MSYS1196372
-Node: VMS Installation1196873
-Node: VMS Compilation1197664
-Ref: VMS Compilation-Footnote-11198893
-Node: VMS Dynamic Extensions1198951
-Node: VMS Installation Details1200636
-Node: VMS Running1202889
-Node: VMS GNV1207168
-Node: VMS Old Gawk1207903
-Node: Bugs1208374
-Node: Bug address1209037
-Node: Usenet1211829
-Node: Maintainers1212606
-Node: Other Versions1213867
-Node: Installation summary1220629
-Node: Notes1221831
-Node: Compatibility Mode1222696
-Node: Additions1223478
-Node: Accessing The Source1224403
-Node: Adding Code1225840
-Node: New Ports1232059
-Node: Derived Files1236547
-Ref: Derived Files-Footnote-11242193
-Ref: Derived Files-Footnote-21242228
-Ref: Derived Files-Footnote-31242826
-Node: Future Extensions1242940
-Node: Implementation Limitations1243598
-Node: Extension Design1244781
-Node: Old Extension Problems1245935
-Ref: Old Extension Problems-Footnote-11247453
-Node: Extension New Mechanism Goals1247510
-Ref: Extension New Mechanism Goals-Footnote-11250874
-Node: Extension Other Design Decisions1251063
-Node: Extension Future Growth1253176
-Node: Old Extension Mechanism1254012
-Node: Notes summary1255775
-Node: Basic Concepts1256957
-Node: Basic High Level1257638
-Ref: figure-general-flow1257920
-Ref: figure-process-flow1258605
-Ref: Basic High Level-Footnote-11261906
-Node: Basic Data Typing1262091
-Node: Glossary1265419
-Node: Copying1297257
-Node: GNU Free Documentation License1334800
-Node: Index1359920
+Node: Extension summary1123302
+Node: Extension Exercises1127004
+Node: Language History1128246
+Node: V7/SVR3.11129902
+Node: SVR41132054
+Node: POSIX1133488
+Node: BTL1134868
+Node: POSIX/GNU1135597
+Node: Feature History1141375
+Node: Common Extensions1157234
+Node: Ranges and Locales1158517
+Ref: Ranges and Locales-Footnote-11163133
+Ref: Ranges and Locales-Footnote-21163160
+Ref: Ranges and Locales-Footnote-31163395
+Node: Contributors1163616
+Node: History summary1169561
+Node: Installation1170941
+Node: Gawk Distribution1171885
+Node: Getting1172369
+Node: Extracting1173332
+Node: Distribution contents1174970
+Node: Unix Installation1181450
+Node: Quick Installation1182132
+Node: Shell Startup Files1184546
+Node: Additional Configuration Options1185635
+Node: Configuration Philosophy1187800
+Node: Non-Unix Installation1190169
+Node: PC Installation1190629
+Node: PC Binary Installation1191467
+Node: PC Compiling1191902
+Node: PC Using1193019
+Node: Cygwin1196064
+Node: MSYS1196834
+Node: VMS Installation1197335
+Node: VMS Compilation1198126
+Ref: VMS Compilation-Footnote-11199355
+Node: VMS Dynamic Extensions1199413
+Node: VMS Installation Details1201098
+Node: VMS Running1203351
+Node: VMS GNV1207630
+Node: VMS Old Gawk1208365
+Node: Bugs1208836
+Node: Bug address1209499
+Node: Usenet1212291
+Node: Maintainers1213068
+Node: Other Versions1214329
+Node: Installation summary1221091
+Node: Notes1222293
+Node: Compatibility Mode1223158
+Node: Additions1223940
+Node: Accessing The Source1224865
+Node: Adding Code1226302
+Node: New Ports1232521
+Node: Derived Files1237009
+Ref: Derived Files-Footnote-11242655
+Ref: Derived Files-Footnote-21242690
+Ref: Derived Files-Footnote-31243288
+Node: Future Extensions1243402
+Node: Implementation Limitations1244060
+Node: Extension Design1245243
+Node: Old Extension Problems1246397
+Ref: Old Extension Problems-Footnote-11247915
+Node: Extension New Mechanism Goals1247972
+Ref: Extension New Mechanism Goals-Footnote-11251336
+Node: Extension Other Design Decisions1251525
+Node: Extension Future Growth1253638
+Node: Old Extension Mechanism1254474
+Node: Notes summary1256237
+Node: Basic Concepts1257419
+Node: Basic High Level1258100
+Ref: figure-general-flow1258382
+Ref: figure-process-flow1259067
+Ref: Basic High Level-Footnote-11262368
+Node: Basic Data Typing1262553
+Node: Glossary1265881
+Node: Copying1297719
+Node: GNU Free Documentation License1335262
+Node: Index1360382
 
 End Tag Table
