@@ -723,6 +723,7 @@ EXTRA_DIST = \
 	nlstringtest.awk \
 	nlstringtest.ok \
 	nlstringtest.po \
+	nlstringtest-nogettext.ok \
 	fr \
 	noeffect.awk \
 	noeffect.ok \
@@ -2512,7 +2513,12 @@ nlstringtest::
 	@echo $@
 	@[ -z "$$GAWKLOCALE" ] && GAWKLOCALE=fr_FR.UTF-8 ; \
 	AWKPATH="$(srcdir)" $(AWK) -f $@.awk "$(srcdir)" >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
-	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
+	@-if $(CMP) -s "$(srcdir)"/nlstringtest-nogettext.ok _$@ ; \
+	then \
+		rm -f _$@ ; \
+	else \
+		$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@ ; \
+	fi
 
 
 # Targets generated for other tests:
