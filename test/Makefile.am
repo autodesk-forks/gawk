@@ -924,6 +924,7 @@ EXTRA_DIST = \
 	readbuf.ok \
 	readdir.awk \
 	readdir0.awk \
+	readdir_retest.awk \
 	readfile2.awk \
 	readfile2.ok \
 	rebrackloc.awk \
@@ -1341,7 +1342,7 @@ SHLIB_TESTS = \
 	getfile \
 	inplace1 inplace2 inplace3 \
 	ordchr ordchr2 \
-	readdir readdir_test readfile readfile2 revout \
+	readdir readdir_test readdir_retest readfile readfile2 revout \
 	revtwoway rwarray \
 	testext time
 
@@ -2286,6 +2287,12 @@ readdir_test:
 	@$(AWK) -lreaddir_test '{printf "[%s] [%s] [%s] [%s]\n", $$1, $$2, $$3, $$4}' "$(top_srcdir)" > _$@
 	@-$(CMP) $@.ok _$@ && rm -f $@.ok _$@
 
+readdir_retest:
+	@echo $@
+	@$(AWK) -lreaddir -F/ -f $@.awk "$(top_srcdir)" > $@.ok
+	@$(AWK) -lreaddir_test -F/ -f $@.awk "$(top_srcdir)" > _$@
+	@-$(CMP) $@.ok _$@ && rm -f $@.ok _$@
+
 fts:
 	@case `uname` in \
 	IRIX) \
@@ -2527,6 +2534,7 @@ Maketests: $(srcdir)/Makefile.am $(srcdir)/Gentests
 clean-local:
 	rm -fr _* core core.* fmtspcl.ok junk strftime.ok test1 test2 \
 	seq *~ readfile.ok fork.tmp.* testext.awk fts.ok readdir.ok \
+	readdir_test.ok readdir_retest.ok \
 	profile1.ok
 
 # An attempt to print something that can be grepped for in build logs
