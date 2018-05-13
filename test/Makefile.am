@@ -1361,7 +1361,8 @@ NEED_NONDEC = nondec2 intarray forcenum
 NEED_POSIX = printf0 posix2008sub paramasfunc1 paramasfunc2 muldimposix
 
 # List of tests that need --pretty-print
-NEED_PRETTY = profile4 profile5 profile8 profile9 profile10
+NEED_PRETTY = nsprof1 nsprof2 \
+	profile4 profile5 profile8 profile9 profile10
 
 # List of tests that need --re-interval
 NEED_RE_INTERVAL = gsubtst3 reint reint2
@@ -2186,16 +2187,6 @@ arrdbg:
 sourcesplit:
 	@echo $@
 	@AWKPATH="$(srcdir)" $(AWK) --source='BEGIN { a = 5;' --source='print a }' >_$@ 2>&1 || echo EXIT CODE: $$? >>_$@
-	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
-
-nsprof1:
-	@echo $@
-	@$(AWK) --pretty-print=_$@ -f "$(srcdir)"/$@.awk < /dev/null
-	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
-
-nsprof2:
-	@echo $@
-	@$(AWK) --pretty-print=_$@ -f "$(srcdir)"/$@.awk < /dev/null
 	@-$(CMP) "$(srcdir)"/$@.ok _$@ && rm -f _$@
 
 eofsrc1:
