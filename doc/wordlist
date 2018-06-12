@@ -1011,6 +1011,7 @@ fieldwidth
 fifo
 filedata
 filefuncs
+filelist
 filename
 filenames
 fileno
